@@ -108,6 +108,29 @@
     margin-top: 10px;
 }
 
+.language-selector {
+  margin-bottom: 20px;
+}
+.lang-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.lang-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.lang-btn.active {
+  background: #2ecc71;
+  color: white;
+  border-color: #2ecc71;
+  font-weight: bold;
+}
+
 /* Bullet points from Gemini */
 .advice-text ul {
     padding-left: 20px;
