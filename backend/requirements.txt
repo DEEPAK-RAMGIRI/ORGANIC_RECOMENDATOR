@@ -8,3 +8,6 @@ flask
 flask-cors
 gunicorn
 flask-limiter
+python-dotenv
+pymongo
+certifi
