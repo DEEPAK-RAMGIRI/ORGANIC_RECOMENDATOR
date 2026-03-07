@@ -7,7 +7,7 @@ export default function Sidebar() {
     const location = useLocation();
 
     const navItems = [
-        { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+        { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
         { name: 'Triage (Problem)', path: '/triage', icon: <Stethoscope size={20} /> },
         { name: 'Options Phase', path: '/options', icon: <ListChecks size={20} /> },
         { name: 'Formulation Lab', path: '/lab', icon: <TestTube size={20} /> },

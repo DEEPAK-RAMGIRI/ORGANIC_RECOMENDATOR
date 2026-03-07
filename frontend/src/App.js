@@ -4,7 +4,8 @@ import Sidebar from './components/Sidebar';
 import Triage from './components/Triage';
 import Options from './components/Options';
 import Lab from './components/Lab';
-import Dashboard from './components/Dashboard';
+import DailyDashboard from './components/DailyDashboard';
+import PlanSummary from './components/PlanSummary';
 import MyPlans from './components/MyPlans';
 import ManageFarms from './components/ManageFarms';
 import FarmDetails from './components/FarmDetails';
@@ -21,11 +22,11 @@ function App() {
         <Sidebar />
         <main className="main-content-area">
           <Routes>
-            <Route path="/" element={<Navigate to="/triage" replace />} />
+            <Route path="/" element={<DailyDashboard />} />
             <Route path="/triage" element={<Triage />} />
             <Route path="/options" element={<Options />} />
             <Route path="/lab" element={<Lab />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/plan-summary" element={<PlanSummary />} />
             <Route path="/my-plans" element={<MyPlans />} />
             <Route path="/farms" element={<ManageFarms />} />
             <Route path="/farms/:id" element={<FarmDetails />} />

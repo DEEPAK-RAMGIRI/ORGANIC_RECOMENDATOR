@@ -4,12 +4,11 @@ import { AlertTriangle, ArrowLeft, CheckCircle2, ListChecks, FlaskConical, Bookm
 import axios from 'axios';
 import '../styles/flow.css';
 
-export default function Dashboard() {
+export default function PlanSummary() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { formulation_data, substitutions, custom_instructions, context, is_mock, is_saved } = location.state || { formulation_data: null, substitutions: {}, custom_instructions: '', context: {}, is_mock: false, is_saved: false };
-  const [checkedItems, setCheckedItems] = useState({});
+  const { formulation_data, substitutions, custom_instructions, context, is_mock, is_saved, plan_id, completed_task_ids = [] } = location.state || { formulation_data: null, substitutions: {}, custom_instructions: '', context: {}, is_mock: false, is_saved: false, completed_task_ids: [] };
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -54,7 +53,7 @@ export default function Dashboard() {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 style={{ fontSize: '2.5rem', marginBottom: '8px', background: 'linear-gradient(45deg, #2ecc71, #27ae60)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Action Dashboard
+              Plan Summary
             </h1>
             {is_mock && (
               <span style={{ background: '#ef4444', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
@@ -67,7 +66,7 @@ export default function Dashboard() {
               </span>
             )}
           </div>
-          <p style={{ fontSize: '1.1rem', color: '#64748b' }}>Your dynamic <strong>{context.alternative}</strong> plan for {context.plot} ({context.acres} Acres).</p>
+          <p style={{ fontSize: '1.1rem', color: '#64748b' }}>Full roadmap for <strong>{context.alternative}</strong> on {context.plot} ({context.acres} Acres).</p>
         </div>
       </header>
 
@@ -113,9 +112,6 @@ export default function Dashboard() {
                 <div
                   key={idx}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
                     padding: '16px',
                     background: '#f8fafc',
                     border: '1px solid #f1f5f9',
@@ -123,18 +119,13 @@ export default function Dashboard() {
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <div style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center' }}>
-                    <CheckCircle2 size={24} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: ing.note ? '8px' : 0 }}>
+                    <strong style={{ color: '#1e293b', fontSize: '1rem' }}>{ing.name}</strong>
+                    <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: '600', whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '60%', textAlign: 'right' }}>
+                      {ing.quantity}
+                    </span>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                      <strong style={{ color: '#1e293b', fontSize: '1.05rem', paddingRight: '12px' }}>{ing.name}</strong>
-                      <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', whiteSpace: 'nowrap' }}>
-                        {ing.quantity}
-                      </span>
-                    </div>
-                    {ing.note && <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>{ing.note}</div>}
-                  </div>
+                  {ing.note && <div style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5' }}>{ing.note}</div>}
                 </div>
               ))}
             </div>
@@ -143,39 +134,84 @@ export default function Dashboard() {
           {/* Timeline Stepper */}
           <div className="form-card" style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', border: '1px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)' }}>
             <h3 style={{ margin: 0, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', color: '#334155' }}>
-              <ListChecks size={22} color="#8b5cf6" /> Preparation Timeline
+              <ListChecks size={22} color="#8b5cf6" /> Preparation Roadmap
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative' }}>
-              {/* Vertical Line connecting steps */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', position: 'relative' }}>
               <div style={{ position: 'absolute', left: '15px', top: '24px', bottom: '24px', width: '2px', background: '#e2e8f0', zIndex: 0 }}></div>
 
-              {formulation_data.timeline_steps && formulation_data.timeline_steps.map((step, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '20px', position: 'relative', zIndex: 1 }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    background: '#fff',
-                    border: '2px solid #8b5cf6',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: '0 0 0 4px #fff'
-                  }}>
-                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#8b5cf6' }}></div>
-                  </div>
-                  <div style={{ paddingTop: '4px' }}>
-                    <div style={{ fontWeight: '600', color: '#4f46e5', marginBottom: '6px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {step.day}
+              {(() => {
+                // Dynamically extract all unique days from the sparse arrays
+                let allDays = new Set();
+                const tasks = formulation_data.preparation_tasks || [];
+                tasks.forEach(t => {
+                  if (t.days) t.days.forEach(d => allDays.add(d));
+                });
+
+                const sortedDays = Array.from(allDays).sort((a, b) => a - b);
+
+                return sortedDays.map((dayNum, idx) => {
+
+                  // Find tasks that fall on this specific day
+                  const tasksForToday = tasks.filter(t => t.days && t.days.includes(dayNum))
+                    .map((t, taskIndex) => { return { desc: t.description, id: `task_${taskIndex}_day_${dayNum}` } });
+
+                  return (
+                    <div key={`day-${dayNum}`} style={{ display: 'flex', gap: '20px', position: 'relative', zIndex: 1 }}>
+                      <div style={{
+                        width: '32px', height: '32px', borderRadius: '50%', background: '#fff',
+                        border: '2px solid #8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, boxShadow: '0 0 0 4px #fff'
+                      }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#8b5cf6' }}></div>
+                      </div>
+                      <div style={{ paddingTop: '4px', flex: 1 }}>
+                        <div style={{ fontWeight: '600', color: '#4f46e5', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          Day {dayNum}
+                        </div>
+                        <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {tasksForToday.map(taskObj => {
+                            const isCompleted = completed_task_ids.includes(taskObj.id);
+                            return (
+                              <li key={taskObj.id} style={{
+                                color: isCompleted ? '#94a3b8' : '#334155',
+                                textDecoration: isCompleted ? 'line-through' : 'none',
+                                display: 'flex', alignItems: 'flex-start', gap: '8px',
+                                background: isCompleted ? '#f8fafc' : 'transparent',
+                                padding: '8px', borderRadius: '8px'
+                              }}>
+                                <CheckCircle2 size={16} color={isCompleted ? '#10b981' : '#cbd5e1'} style={{ marginTop: '2px', flexShrink: 0 }} />
+                                <span>{taskObj.desc}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
                     </div>
-                    <div style={{ color: '#334155', lineHeight: '1.6', fontSize: '0.95rem' }}>
-                      {step.action}
-                    </div>
-                  </div>
+                  );
+                });
+              })()}
+
+              <div style={{ display: 'flex', gap: '20px', position: 'relative', zIndex: 1, marginTop: '16px' }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%', background: '#fff',
+                  border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, boxShadow: '0 0 0 4px #fff'
+                }}>
+                  <CheckCircle2 color="#10b981" size={20} />
                 </div>
-              ))}
+                <div style={{ paddingTop: '4px', flex: 1 }}>
+                  <div style={{ fontWeight: '600', color: '#10b981', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Application Phase
+                  </div>
+                  {formulation_data.application_phase && formulation_data.application_phase.map((appPhase, idx) => (
+                    <div key={idx} style={{ color: '#334155', background: '#ecfdf5', padding: '12px', borderRadius: '8px', border: '1px solid #a7f3d0', marginBottom: '8px' }}>
+                      {appPhase.description}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

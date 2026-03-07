@@ -56,7 +56,7 @@ export default function FarmDetails() {
     }, [id]);
 
     const handlePlanClick = (plan) => {
-        navigate('/dashboard', {
+        navigate('/plan-summary', {
             state: {
                 formulation_data: plan.formulation_data,
                 custom_instructions: plan.custom_instructions,
@@ -64,6 +64,8 @@ export default function FarmDetails() {
                 analysis: plan.analysis,
                 is_saved: true,
                 saved_plan_id: plan._id.$oid,
+                plan_id: plan._id.$oid,
+                completed_task_ids: plan.completed_task_ids || [],
                 context: plan.context
             }
         });
@@ -91,8 +93,8 @@ export default function FarmDetails() {
         );
     }
 
-    const activePlans = plans.slice(0, 1);
-    const historicalPlans = plans.slice(1);
+    const activePlans = plans.filter(p => !p.status || p.status === 'PREPARING');
+    const historicalPlans = plans.filter(p => p.status === 'COMPLETED');
 
     return (
         <div className="flow-page animate-fade-in" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>

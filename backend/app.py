@@ -9,6 +9,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pymongo import MongoClient
 import certifi
+import json
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -20,8 +21,10 @@ if not mongo_uri:
     raise ValueError("MONGO_URI not found in environment variables")
 
 # Initialize MongoDB
+mongo_client = None
+db = None
 try:
-    mongo_client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
+    mongo_client = MongoClient(mongo_uri, tls=True, tlsCAFile=certifi.where(), tlsAllowInvalidCertificates=True, serverSelectionTimeoutMS=5000)
     db = mongo_client["organic_db"]
     # Check connection
     mongo_client.admin.command('ping')
@@ -148,43 +151,42 @@ def recommend():
         tfidf_model, vector_data, dataframe = get_models()
 
         # --- HYBRID SEARCH LOGIC ---
-        # 1. First, try an Exact Match to prevent "DAP" being confused with "Urea"
-        best_idx = -1
-        best_score = 0.0
-        
-        # Look for the chemical name specifically in the data
+        query = f"{chemical} {crop}".lower()
+        query_vec = tfidf_model.transform([query])
+        similarities = cosine_similarity(query_vec, vector_data)[0]
+
+        # 1. Boost Exact Matches: Find exact spelling matches and boost them 
+        has_exact_match = False
         for i, row in dataframe.iterrows():
             if chemical.lower() == str(row.get('chemical_name', '')).lower():
-                best_idx = i
-                best_score = 1.0 # Force 100% confidence for exact match
-                break
+                # Add 1.0 to retain TF-IDF context sorting (so the correct crop bubbles to the top of exact matches)
+                similarities[i] += 1.0 
+                has_exact_match = True
 
-        # 2. If no exact match, fall back to TF-IDF Similarity (Fuzzy Search)
-        similarities = None
-        if best_idx == -1:
-            query = f"{chemical} {crop}".lower()
-            query_vec = tfidf_model.transform([query])
-            similarities = cosine_similarity(query_vec, vector_data)[0]
-            
-            # Confidence Threshold Check for fuzzy search
-            if similarities.max() < 0.15: # Strict minimum confidence threshold for gibberish
+        best_score = similarities.max()
+
+        if not has_exact_match:
+            # 2. Prevent valid crops from artificially boosting gibberish chemicals
+            chem_vec = tfidf_model.transform([chemical.lower()])
+            if cosine_similarity(chem_vec, vector_data)[0].max() < 0.05:
                 return jsonify({
                     "status": "error",
-                    "message": f"No reliable organic alternative found for '{chemical}'. Please check the spelling or try another."
+                    "message": f"'{chemical}' is not recognized in our agronomy database. Please check the spelling."
+                }), 400
+
+            # Confidence Threshold Check for fuzzy search limit
+            if best_score <= 0.30: 
+                return jsonify({
+                    "status": "error",
+                    "message": f"No reliable organic alternative found for '{chemical}'."
                 }), 400
 
         options = []
         seen_alts = set()
         
-        # If we had an exact match, use that. Otherwise use the top fuzzy matches.
-        if best_idx != -1:
-            # We have an exact match, just use this one
-            indices_to_check = [best_idx]
-            scores = [best_score]
-        else:
-            # We are using fuzzy search, get the top 5 matches to filter down
-            indices_to_check = similarities.argsort()[::-1][:5]
-            scores = [similarities[idx] for idx in indices_to_check]
+        # Get the top matches
+        indices_to_check = similarities.argsort()[::-1][:5]
+        scores = [similarities[idx] for idx in indices_to_check]
         
         for i, idx in enumerate(indices_to_check):
             score = scores[i]
@@ -207,9 +209,10 @@ def recommend():
                 "dosage": res["dosage"],
                 "application_time": res["application_time"],
                 "safety_note": res["safety_note"],
-                "confidence": round(float(score), 4),
+                "confidence": min(1.0, round(float(score), 4)),
                 "prep_time": prep_time,
-                "problem_target": res.get("problem_or_pest", "general growth")
+                "problem_target": res.get("problem_or_pest", "general growth"),
+                "corrected_chemical": str(res.get("chemical_name", chemical))
             })
             
             # Only return the top 3 unique options
@@ -266,15 +269,21 @@ def formulate():
         TASK:
         1. Recalculate the exact weights/liters of the required ingredients for {acres} acres.
         2. Specifically note if the substitutions change the required fermentation/preparation time or effectiveness.
-        3. Provide a step-by-step Day-by-Day timeline for preparation and application.
+        3. Break the preparation into specific actionable tasks. Assign each task an array of days it must be performed on. (Day 1 is the first day of prep).
         
         Output MUST be pure JSON with no markdown formatting or backticks. Schema:
         {{
             "ingredients": [
                 {{"name": "Ingredient 1", "quantity": "amount", "note": "reason/substitution info"}}
             ],
-            "timeline_steps": [
-                {{"day": "Day 1 (Prep)", "action": "Mix ingredients..."}}
+            "preparation_tasks": [
+                {{
+                    "description": "Short, actionable task description (e.g., Stir the mixture thoroughly)",
+                    "days": [1, 2, 3] # The exact day numbers this task MUST be done. Keep it sparse. If a task isn't needed on Day 4, don't include 4.
+                }}
+            ],
+            "application_phase": [
+                {{"description": "Application instruction (e.g., Dilute 1L of mixture with 10L water and spray)"}}
             ],
             "warnings": [
                 "Safety or fermentation warning here..."
@@ -304,10 +313,12 @@ def formulate():
                     {"name": "Cow Urine", "quantity": f"{10 * float(acres)} Liters", "note": "Nitrogen source"},
                     {"name": "Jaggery (or substitute)", "quantity": f"{1 * float(acres)} kg", "note": "Fermentation starter"}
                 ],
-                "timeline_steps": [
-                    {"day": "Day 1 (Prep)", "action": "Mix all ingredients in a barrel with 200L of water."},
-                    {"day": "Day 2-3 (Fermentation)", "action": "Stir clockwise twice a day. Keep in shade."},
-                    {"day": "Day 4 (Application)", "action": f"Dilute with water and spray evenly across {acres} acres of {crop}."}
+                "preparation_tasks": [
+                    {"description": "Mix all ingredients in a barrel with 200L of water.", "days": [1]},
+                    {"description": "Stir clockwise twice a day. Keep in shade.", "days": [2, 3, 4]}
+                ],
+                "application_phase": [
+                    {"description": f"Dilute with water and spray evenly across {acres} acres of {crop}."}
                 ],
                 "warnings": [
                     "If using Buffalo Dung instead of Cow Dung, fermentation may take 1 extra day.",
@@ -429,7 +440,10 @@ def save_formulation():
             "user_id": user_id,
             "formulation_data": formulation_data,
             "context": context,
-            "created_at": __import__('datetime').datetime.now()
+            "created_at": __import__('datetime').datetime.now(),
+            "start_date": __import__('datetime').datetime.now().isoformat(),
+            "completed_task_ids": [],
+            "status": "PREPARING"
         }
         
         result = db.formulations.insert_one(new_plan)
@@ -438,6 +452,45 @@ def save_formulation():
             "message": "Plan saved successfully!",
             "plan_id": str(result.inserted_id)
         })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/tasks/sync", methods=["PUT"])
+def sync_tasks():
+    try:
+        req = request.get_json()
+        plan_id = req.get("plan_id")
+        task_id = req.get("task_id") # e.g., 'task_0_day_1'
+        is_completed = req.get("is_completed", True)
+        
+        if not plan_id or not task_id:
+            return jsonify({"status": "error", "message": "Missing plan_id or task_id"}), 400
+            
+        from bson.objectid import ObjectId
+        
+        if is_completed:
+            # If this is the very first task being completed, officially start the timer
+            plan_doc = db.formulations.find_one({"_id": ObjectId(plan_id)})
+            current_completed = plan_doc.get("completed_task_ids", [])
+            
+            update_fields = {"$addToSet": {"completed_task_ids": task_id}}
+            if len(current_completed) == 0:
+                update_fields["$set"] = {"start_date": __import__('datetime').datetime.now().isoformat()}
+
+            db.formulations.update_one(
+                {"_id": ObjectId(plan_id)},
+                update_fields
+            )
+        else:
+            db.formulations.update_one(
+                {"_id": ObjectId(plan_id)},
+                {"$pull": {"completed_task_ids": task_id}}
+            )
+            
+        # Optional: We could run a check here to upgrade status to READY_TO_APPLY or COMPLETED
+        # but for now we'll just track the array.
+            
+        return jsonify({"status": "success", "message": "Task synced successfully!"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

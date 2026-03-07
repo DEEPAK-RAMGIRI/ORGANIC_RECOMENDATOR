@@ -37,7 +37,7 @@ export default function Options() {
                     Choose Your <span style={{ color: '#2ecc71' }}>Organic Replacement</span>
                 </h1>
                 <p style={{ fontSize: '1.2rem', color: '#64748b', maxWidth: '600px' }}>
-                    We found <strong>{options.length} viable alternatives</strong> to replace {context.chemical} for your {context.crop} crop. Select the method that best fits your schedule and resources.
+                    We found <strong>{options.length} viable alternatives</strong> to replace {options[0]?.corrected_chemical || context.chemical} for your {context.crop} crop. Select the method that best fits your schedule and resources.
                 </p>
             </header>
 

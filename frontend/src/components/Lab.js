@@ -71,7 +71,7 @@ export default function Lab() {
         try {
             const response = await axios.post('http://localhost:10000/formulate', {
                 alternative: selectedOption.alternative,
-                chemical_replaced: context.chemical,
+                chemical_replaced: selectedOption.corrected_chemical || context.chemical,
                 crop: context.crop,
                 acres: context.acres,
                 substitutions: substitutions,
@@ -80,7 +80,7 @@ export default function Lab() {
             });
 
             if (response.data.status === 'success') {
-                navigate('/dashboard', {
+                navigate('/plan-summary', {
                     state: {
                         formulation_data: response.data.formulation_data,
                         substitutions: substitutions,
@@ -143,7 +143,7 @@ export default function Lab() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>
                                 <Beaker size={14} /> Replaces
                             </div>
-                            <div style={{ fontWeight: '600', color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{context.chemical}</div>
+                            <div style={{ fontWeight: '600', color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedOption.corrected_chemical || context.chemical}</div>
                         </div>
                     </div>
                 </div>

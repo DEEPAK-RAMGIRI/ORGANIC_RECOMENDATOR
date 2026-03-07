@@ -29,7 +29,7 @@ export default function MyPlans() {
 
     const openPlan = (plan) => {
         // We route them back to the action dashboard, passing the saved plan data
-        navigate('/dashboard', {
+        navigate('/plan-summary', {
             state: {
                 formulation_data: plan.formulation_data,
                 substitutions: plan.context.substitutions,
