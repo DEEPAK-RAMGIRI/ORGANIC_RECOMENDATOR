@@ -147,21 +147,48 @@ def recommend():
 
         tfidf_model, vector_data, dataframe = get_models()
 
-        query = f"{chemical} {crop}".lower()
-        query_vec = tfidf_model.transform([query])
-        similarities = cosine_similarity(query_vec, vector_data)[0]
-
-        # Get top indices, we get all and filter down
-        top_indices = similarities.argsort()[::-1]
+        # --- HYBRID SEARCH LOGIC ---
+        # 1. First, try an Exact Match to prevent "DAP" being confused with "Urea"
+        best_idx = -1
+        best_score = 0.0
         
+        # Look for the chemical name specifically in the data
+        for i, row in dataframe.iterrows():
+            if chemical.lower() == str(row.get('chemical_name', '')).lower():
+                best_idx = i
+                best_score = 1.0 # Force 100% confidence for exact match
+                break
+
+        # 2. If no exact match, fall back to TF-IDF Similarity (Fuzzy Search)
+        similarities = None
+        if best_idx == -1:
+            query = f"{chemical} {crop}".lower()
+            query_vec = tfidf_model.transform([query])
+            similarities = cosine_similarity(query_vec, vector_data)[0]
+            
+            # Confidence Threshold Check for fuzzy search
+            if similarities.max() < 0.15: # Strict minimum confidence threshold for gibberish
+                return jsonify({
+                    "status": "error",
+                    "message": f"No reliable organic alternative found for '{chemical}'. Please check the spelling or try another."
+                }), 400
+
         options = []
         seen_alts = set()
         
-        for idx in top_indices:
-            score = similarities[idx]
-            if score < 0.05: # Strict minimum confidence threshold
-                continue
-                
+        # If we had an exact match, use that. Otherwise use the top fuzzy matches.
+        if best_idx != -1:
+            # We have an exact match, just use this one
+            indices_to_check = [best_idx]
+            scores = [best_score]
+        else:
+            # We are using fuzzy search, get the top 5 matches to filter down
+            indices_to_check = similarities.argsort()[::-1][:5]
+            scores = [similarities[idx] for idx in indices_to_check]
+        
+        for i, idx in enumerate(indices_to_check):
+            score = scores[i]
+            
             res = dataframe.iloc[idx]
             alt_name = res["organic_alternative"].strip()
             
@@ -172,7 +199,6 @@ def recommend():
             seen_alts.add(alt_name.lower())
             
             # Mock prep times/ingredients since not in current dataset
-            # In a real scenario, this would come from the database
             prep_time = "48 Hours" if "jeeva" in alt_name.lower() or "amrutham" in alt_name.lower() else "10 Days" if "pancha" in alt_name.lower() else "1-2 Days"
             
             options.append({
@@ -186,7 +212,7 @@ def recommend():
                 "problem_target": res.get("problem_or_pest", "general growth")
             })
             
-            # Only return the top 3 unique, high-confidence options
+            # Only return the top 3 unique options
             if len(options) >= 3:
                 break
 
