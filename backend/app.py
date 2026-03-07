@@ -258,23 +258,29 @@ def formulate():
             subs_text = "The farmer has all standard ingredients available."
 
         prompt = f"""
-        Act as an expert chemical and organic agronomist. 
+        Act as an expert organic agronomist with deep knowledge of Indian farming practices. 
         Provide the entire response strictly in {user_lang}.
         
-        A farmer is switching from using {chemical_replaced} on {acres} acres of {crop}.
+        A farmer in India is switching from using {chemical_replaced} on {acres} acres of {crop}.
         They have chosen the organic alternative: {alternative}.
 
         {subs_text}
 
+        CRITICAL UNIT RULES (MANDATORY):
+        - All weights MUST be expressed in Indian units: grams (g), kilograms (kg), quintals (1 quintal = 100 kg), or metric tonnes/MT (1 MT = 1000 kg).
+        - All volumes MUST be expressed as: millilitres (ml) or litres (L).
+        - NEVER use pounds, lbs, oz, gallons, or any non-Indian unit.
+        - For large farms (>5 acres), prefer quintals or MT for ingredient quantities.
+
         TASK:
-        1. Recalculate the exact weights/liters of the required ingredients for {acres} acres.
+        1. Recalculate the exact weights/volumes of the required ingredients for {acres} acres using Indian units (kg, quintal, MT, litres).
         2. Specifically note if the substitutions change the required fermentation/preparation time or effectiveness.
         3. Break the preparation into specific actionable tasks. Assign each task an array of days it must be performed on. (Day 1 is the first day of prep).
         
         Output MUST be pure JSON with no markdown formatting or backticks. Schema:
         {{
             "ingredients": [
-                {{"name": "Ingredient 1", "quantity": "amount", "note": "reason/substitution info"}}
+                {{"name": "Ingredient 1", "quantity": "amount in kg/quintal/litres", "note": "reason/substitution info"}}
             ],
             "preparation_tasks": [
                 {{

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FlaskConical, Stethoscope, ListChecks, TestTube, Library, Tractor } from 'lucide-react';
+import { LayoutDashboard, FlaskConical, Stethoscope, Library, Tractor } from 'lucide-react';
 import '../styles/sidebar.css';
 
 export default function Sidebar() {
@@ -8,11 +8,9 @@ export default function Sidebar() {
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-        { name: 'Triage (Problem)', path: '/triage', icon: <Stethoscope size={20} /> },
-        { name: 'Options Phase', path: '/options', icon: <ListChecks size={20} /> },
-        { name: 'Formulation Lab', path: '/lab', icon: <TestTube size={20} /> },
-        { name: 'My Plans Library', path: '/my-plans', icon: <Library size={20} /> },
-        { name: 'Farm Management', path: '/farms', icon: <Tractor size={20} /> },
+        { name: 'Start Triage', path: '/triage', icon: <Stethoscope size={20} /> },
+        { name: 'My Plans', path: '/my-plans', icon: <Library size={20} /> },
+        { name: 'Farm Portfolio', path: '/farms', icon: <Tractor size={20} /> },
     ];
 
     return (

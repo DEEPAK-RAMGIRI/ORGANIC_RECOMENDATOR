@@ -136,7 +136,7 @@ export default function FarmDetails() {
                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(16, 185, 129, 0.15)'; }}
                                 >
                                     <div style={{ position: 'absolute', top: '-12px', right: '24px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', padding: '4px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                                        CURRENT REGIMEN
+                                        {plan.status || 'PREPARING'}
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

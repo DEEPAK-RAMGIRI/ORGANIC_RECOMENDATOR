@@ -43,9 +43,15 @@ export default function Lab() {
 
     if (!selectedOption) {
         return (
-            <div className="flow-page text-center mt-12">
-                <h2>No recipe selected.</h2>
-                <button className="primary-btn mt-6" onClick={() => navigate('/triage')}>Go Back</button>
+            <div className="flow-page animate-fade-in" style={{ maxWidth: '600px', margin: '4rem auto', padding: '2rem', textAlign: 'center' }}>
+                <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '20px', padding: '48px 24px' }}>
+                    <h2 style={{ color: '#334155', marginBottom: '12px' }}>No alternative selected</h2>
+                    <p style={{ color: '#64748b', marginBottom: '24px', lineHeight: '1.6' }}>
+                        The Formulation Lab opens automatically after you choose an alternative in the Options step.<br />
+                        Please start from Triage.
+                    </p>
+                    <button className="primary-btn" onClick={() => navigate('/triage')}>Go to Triage →</button>
+                </div>
             </div>
         );
     }

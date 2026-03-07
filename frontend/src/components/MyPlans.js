@@ -28,13 +28,15 @@ export default function MyPlans() {
     }, []);
 
     const openPlan = (plan) => {
-        // We route them back to the action dashboard, passing the saved plan data
         navigate('/plan-summary', {
             state: {
                 formulation_data: plan.formulation_data,
-                substitutions: plan.context.substitutions,
+                substitutions: plan.context?.substitutions || {},
+                custom_instructions: plan.context?.custom_instructions || '',
                 context: plan.context,
-                is_saved: true // Prevents them from saving it again
+                is_saved: true,
+                plan_id: plan._id?.$oid || plan._id,
+                completed_task_ids: plan.completed_task_ids || []
             }
         });
     };
@@ -114,7 +116,7 @@ export default function MyPlans() {
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
-                                    <span style={{ fontSize: '0.9rem', color: '#8b5cf6', fontWeight: '600' }}>View Full Routine</span>
+                                    <span style={{ fontSize: '0.9rem', color: '#8b5cf6', fontWeight: '600' }}>View Plan Summary</span>
                                     <ArrowRight size={18} color="#8b5cf6" />
                                 </div>
                             </div>

@@ -12,9 +12,14 @@ export default function Options() {
 
     if (!options || options.length === 0) {
         return (
-            <div className="flow-page animate-fade-in text-center mt-12">
-                <h2>No options available.</h2>
-                <button className="primary-btn mt-6" onClick={() => navigate('/triage')}>Go Back</button>
+            <div className="flow-page animate-fade-in" style={{ maxWidth: '600px', margin: '4rem auto', padding: '2rem', textAlign: 'center' }}>
+                <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '20px', padding: '48px 24px' }}>
+                    <h2 style={{ color: '#334155', marginBottom: '12px' }}>No alternatives selected yet</h2>
+                    <p style={{ color: '#64748b', marginBottom: '24px', lineHeight: '1.6' }}>
+                        This page shows alternatives after you run a Triage scan.<br />Please start from the beginning.
+                    </p>
+                    <button className="primary-btn" onClick={() => navigate('/triage')}>Go to Triage →</button>
+                </div>
             </div>
         );
     }
