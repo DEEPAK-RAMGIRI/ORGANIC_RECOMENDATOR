@@ -97,7 +97,9 @@ export default function Triage() {
                     state: {
                         options: response.data.options,
                         context: {
-                            chemical,
+                            // Use corrected chemical name from dataset (fixes typos like "ureo" → "Urea")
+                            chemical: response.data.options[0]?.corrected_chemical || chemical,
+                            corrected_chemical: response.data.options[0]?.corrected_chemical || chemical,
                             crop: cropToUse,
                             plot: `${selectedFarm.name} - ${selectedFarm.plot}`,
                             acres: selectedFarm.acres || 1,

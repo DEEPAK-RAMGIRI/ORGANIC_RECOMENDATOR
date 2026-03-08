@@ -47,7 +47,9 @@ export default function DailyDashboard() {
 
     const toggleTask = async (planId, taskId, currentCompletedArray) => {
         const willBeCompleted = !currentCompletedArray.includes(taskId);
-        setSyncingTasks(prev => ({ ...prev, [taskId]: true }));
+        // Key by planId+taskId to avoid cross-plan collision (e.g. both plans have task_0_day_1)
+        const syncKey = `${planId}_${taskId}`;
+        setSyncingTasks(prev => ({ ...prev, [syncKey]: true }));
         setPlans(prev => prev.map(p => {
             const id = typeof p._id === 'string' ? p._id : p._id.$oid;
             if (id !== planId) return p;
@@ -62,7 +64,7 @@ export default function DailyDashboard() {
             console.error('Sync failed:', err);
             fetchActivePlans();
         } finally {
-            setSyncingTasks(prev => ({ ...prev, [taskId]: false }));
+            setSyncingTasks(prev => ({ ...prev, [syncKey]: false }));
         }
     };
 
@@ -217,8 +219,10 @@ export default function DailyDashboard() {
                             <div style={{ padding: '12px 16px 16px' }}>
                                 {plan.tasksDueToday.map((task) => {
                                     const taskId = `task_${task.original_index}_day_${plan.currentDay}`;
+                                    // Scope sync key by planId to prevent cross-plan spinner collision
+                                    const syncKey = `${planId}_${taskId}`;
                                     const isCompleted = (plan.completed_task_ids || []).includes(taskId);
-                                    const isSyncing = syncingTasks[taskId];
+                                    const isSyncing = syncingTasks[syncKey];
 
                                     return (
                                         <div

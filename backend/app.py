@@ -8,9 +8,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 import certifi
 import json
 import re
+from datetime import datetime
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -111,7 +113,8 @@ def save_farm():
             "plot": plot_name,
             "crop": crop,
             "acres": acres,
-            "soil_type": soil_type
+            "soil_type": soil_type,
+            "created_at": datetime.utcnow()
         }
         
         result = db.farms.insert_one(new_farm)
@@ -122,8 +125,6 @@ def save_farm():
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
-from bson.objectid import ObjectId
 
 @app.route("/api/farms/<farm_id>", methods=["DELETE"])
 def delete_farm(farm_id):
@@ -137,6 +138,19 @@ def delete_farm(farm_id):
             return jsonify({"status": "error", "message": "Farm not found or unauthorized."}), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/farms/<farm_id>", methods=["GET"])
+def get_farm_by_id(farm_id):
+    """Fetch a single farm by ID — used by FarmDetails to avoid loading all farms."""
+    try:
+        user_id = request.args.get("user_id", "ashwanth_demo")
+        farm = db.farms.find_one({"_id": ObjectId(farm_id), "user_id": user_id})
+        if not farm:
+            return jsonify({"status": "error", "message": "Farm not found."}), 404
+        return bson_dumps({"status": "success", "farm": farm}), 200, {'Content-Type': 'application/json'}
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/", methods=["GET"])
 def home():
@@ -207,8 +221,16 @@ def recommend():
                 
             seen_alts.add(alt_name.lower())
             
-            # Mock prep times/ingredients since not in current dataset
-            prep_time = "48 Hours" if "jeeva" in alt_name.lower() or "amrutham" in alt_name.lower() else "10 Days" if "pancha" in alt_name.lower() else "1-2 Days"
+            # ── Get prep time from shared MongoDB collection (user-verified) ──
+            alt_lower = alt_name.lower()
+            prep_time = "Refer to product label"  # fallback if not in DB
+            try:
+                cached = db["prep_times"].find_one({"alternative_key": alt_lower})
+                if cached and cached.get("prep_time"):
+                    prep_time = cached["prep_time"]
+            except Exception as pt_err:
+                print(f"[prep_time] DB lookup failed for '{alt_name}': {pt_err}")
+
             
             options.append({
                 "id": str(idx),
@@ -241,6 +263,7 @@ def recommend():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/formulate", methods=["POST"])
+@app.route("/api/formulate", methods=["POST"])
 @limiter.limit("10 per minute")
 def formulate():
     try:
@@ -454,8 +477,8 @@ def save_formulation():
             "user_id": user_id,
             "formulation_data": formulation_data,
             "context": context,
-            "created_at": __import__('datetime').datetime.now(),
-            "start_date": __import__('datetime').datetime.now().isoformat(),
+            "created_at": datetime.now(),
+            "start_date": datetime.now().isoformat(),
             "completed_task_ids": [],
             "status": "PREPARING"
         }
@@ -480,16 +503,15 @@ def sync_tasks():
         if not plan_id or not task_id:
             return jsonify({"status": "error", "message": "Missing plan_id or task_id"}), 400
             
-        from bson.objectid import ObjectId
-        
         if is_completed:
+
             # If this is the very first task being completed, officially start the timer
             plan_doc = db.formulations.find_one({"_id": ObjectId(plan_id)})
             current_completed = plan_doc.get("completed_task_ids", [])
             
             update_fields = {"$addToSet": {"completed_task_ids": task_id}}
             if len(current_completed) == 0:
-                update_fields["$set"] = {"start_date": __import__('datetime').datetime.now().isoformat()}
+                update_fields["$set"] = {"start_date": datetime.now().isoformat()}
 
             db.formulations.update_one(
                 {"_id": ObjectId(plan_id)},

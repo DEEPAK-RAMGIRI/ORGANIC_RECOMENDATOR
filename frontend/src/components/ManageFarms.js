@@ -14,6 +14,8 @@ export default function ManageFarms() {
     const [showModal, setShowModal] = useState(false);
     const [newFarm, setNewFarm] = useState({ name: '', plot: '', crop: '', acres: 1, soil_type: 'Red' });
     const [savingFarm, setSavingFarm] = useState(false);
+    const [modalError, setModalError] = useState('');
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null); // farmId awaiting delete confirm
 
     const fetchFarmsAndHistory = async () => {
         setLoading(true);
@@ -58,8 +60,9 @@ export default function ManageFarms() {
     }, []);
 
     const handleCreateFarm = async () => {
+        setModalError('');
         if (!newFarm.name || !newFarm.plot || !newFarm.crop) {
-            alert('Please enter a Farm Name, Plot Identifier, and Crop.');
+            setModalError('Please fill in Farm Name, Plot Identifier, and Target Crop.');
             return;
         }
         setSavingFarm(true);
@@ -74,20 +77,19 @@ export default function ManageFarms() {
                 await fetchFarmsAndHistory(); // Refresh list
             }
         } catch (err) {
-            alert('Failed to save farm.');
+            setModalError('Failed to save farm. Please check your connection and try again.');
         } finally {
             setSavingFarm(false);
         }
     };
 
     const handleDelete = async (farmId) => {
-        if (!window.confirm("Are you sure you want to delete this farm plot?")) return;
-
+        setConfirmDeleteId(null);
         try {
             await axios.delete(`http://localhost:10000/api/farms/${farmId}`);
-            await fetchFarmsAndHistory(); // Refresh
+            await fetchFarmsAndHistory();
         } catch (err) {
-            alert("Failed to delete farm.");
+            setError('Failed to delete farm. Please try again.');
         }
     };
 
@@ -120,14 +122,14 @@ export default function ManageFarms() {
             {loading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '100px', color: '#8b5cf6', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
                     <Loader2 size={64} className="spin" />
-                    <p style={{ fontSize: '1.2rem', color: '#94a3b8', letterSpacing: '2px', textTransform: 'uppercase' }}>Synchronizing Assets...</p>
+                    <p style={{ fontSize: '1.2rem', color: '#94a3b8' }}>Loading your farms...</p>
                 </div>
             ) : farms.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '80px 40px', background: 'rgba(30, 41, 59, 0.5)', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)' }}>
                     <Sprout size={80} color="#3b82f6" style={{ margin: '0 auto 32px', opacity: 0.8, filter: 'drop-shadow(0 0 20px rgba(59,130,246,0.5))' }} />
-                    <h3 style={{ color: '#f8fafc', marginBottom: '16px', fontSize: '2rem', fontWeight: '700' }}>Awaiting Deployment</h3>
-                    <p style={{ color: '#94a3b8', marginBottom: '40px', fontSize: '1.2rem', maxWidth: '500px', margin: '0 auto 40px', lineHeight: '1.6' }}>You have no active agricultural sectors registered in the network. Initialize your first sector to begin organic synthesis.</p>
-                    <button onClick={() => setShowModal(true)} style={{ background: 'transparent', border: '2px solid #3b82f6', color: '#60a5fa', padding: '16px 40px', borderRadius: '40px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(59,130,246,0.1)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(59,130,246,0.2)'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.boxShadow = 'none'; }}>Initialize Sector Protocol</button>
+                    <h3 style={{ color: '#1e293b', marginBottom: '16px', fontSize: '1.6rem', fontWeight: '700' }}>No plots registered yet</h3>
+                    <p style={{ color: '#64748b', marginBottom: '40px', fontSize: '1.1rem', maxWidth: '420px', margin: '0 auto 40px', lineHeight: '1.6' }}>You haven't added any farm plots yet. Click the button below to register your first plot and start getting organic plans.</p>
+                    <button onClick={() => setShowModal(true)} className="primary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><PlusCircle size={18} /> Add Your First Plot</button>
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '24px' }}>
@@ -147,13 +149,23 @@ export default function ManageFarms() {
                                     </h3>
                                     <div style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '6px', height: '6px', background: '#10b981', borderRadius: '50%' }}></div> Plot: <span style={{ color: '#475569' }}>{farm.plot}</span></div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button onClick={(e) => { e.stopPropagation(); /* edit disabled */ }} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#94a3b8', cursor: 'pointer', padding: '8px', borderRadius: '12px', transition: 'all 0.2s' }} title="Edit disabled in MVP" disabled>
-                                        <Edit3 size={18} />
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(farm._id.$oid); }} style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', cursor: 'pointer', padding: '8px', borderRadius: '12px', transition: 'all 0.2s' }} title="Delete Farm">
-                                        <Trash2 size={18} />
-                                    </button>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    {confirmDeleteId === farm._id.$oid ? (
+                                        <>
+                                            <span style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: '600' }}>Delete?</span>
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(farm._id.$oid); }} style={{ background: '#ef4444', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '700' }}>Yes</button>
+                                            <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }} style={{ background: '#f1f5f9', border: 'none', color: '#64748b', cursor: 'pointer', padding: '6px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600' }}>Cancel</button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button onClick={(e) => { e.stopPropagation(); /* edit disabled */ }} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#94a3b8', cursor: 'pointer', padding: '8px', borderRadius: '12px', transition: 'all 0.2s' }} title="Edit disabled in MVP" disabled>
+                                                <Edit3 size={18} />
+                                            </button>
+                                            <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(farm._id.$oid); }} style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', cursor: 'pointer', padding: '8px', borderRadius: '12px', transition: 'all 0.2s' }} title="Delete Farm">
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
@@ -236,8 +248,11 @@ export default function ManageFarms() {
                                 disabled={savingFarm}
                                 style={{ width: '100%', padding: '16px', fontSize: '1.1rem', borderRadius: '16px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', cursor: savingFarm ? 'not-allowed' : 'pointer', opacity: savingFarm ? 0.7 : 1, transition: 'transform 0.2s', boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.3)' }}
                             >
-                                {savingFarm ? <><Loader2 size={20} className="spin" style={{ display: 'inline', marginBottom: '-4px', marginRight: '8px' }} /> Creating Plot Profile...</> : 'Save Plot Profile'}
+                                {savingFarm ? <><Loader2 size={20} className="spin" style={{ display: 'inline', marginBottom: '-4px', marginRight: '8px' }} />Creating Plot Profile...</> : 'Save Plot Profile'}
                             </button>
+                            {modalError && (
+                                <p style={{ color: '#b91c1c', fontSize: '0.9rem', marginTop: '8px', textAlign: 'center' }}>{modalError}</p>
+                            )}
                         </div>
                     </div>
                 </div>

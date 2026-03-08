@@ -15,9 +15,11 @@ export default function PlanSummary() {
 
   if (!formulation_data) {
     return (
-      <div className="flow-page text-center mt-12">
-        <h2>No active plan.</h2>
-        <button className="primary-btn mt-6" onClick={() => navigate('/triage')}>Start New Triage</button>
+      <div className="flow-page" style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📋</div>
+        <h2 style={{ color: '#334155', marginBottom: '12px' }}>No active plan.</h2>
+        <p style={{ color: '#64748b', marginBottom: '24px' }}>Generate a plan from the Lab to view it here.</p>
+        <button className="primary-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }} onClick={() => navigate('/triage')}>Start New Triage →</button>
       </div>
     );
   }
@@ -43,6 +45,21 @@ export default function PlanSummary() {
       setIsSaving(false);
     }
   };
+
+  // Post-save CTA block
+  const SaveSuccessBanner = () => (
+    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '8px', textAlign: 'center' }}>
+      <div style={{ fontSize: '2rem' }}>✅</div>
+      <div>
+        <p style={{ margin: '0 0 4px', fontWeight: '700', color: '#065f46', fontSize: '1.1rem' }}>Plan saved to your library!</p>
+        <p style={{ margin: 0, color: '#15803d', fontSize: '0.9rem' }}>You can now track daily tasks in the Dashboard or view it anytime from My Plans.</p>
+      </div>
+      <div style={{ display: 'flex', gap: '12px' }}>
+        <button onClick={() => navigate('/dashboard')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}>Go to Dashboard →</button>
+        <button onClick={() => navigate('/my-plans')} style={{ background: 'white', color: '#475569', border: '1px solid #e2e8f0', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontSize: '0.95rem' }}>My Plans</button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flow-page animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>

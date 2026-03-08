@@ -24,7 +24,7 @@ export default function Sidebar() {
                     <Link
                         key={item.path}
                         to={item.path}
-                        className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                        className={`nav-item ${location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path)) ? 'active' : ''}`}
                     >
                         {item.icon}
                         <span>{item.name}</span>

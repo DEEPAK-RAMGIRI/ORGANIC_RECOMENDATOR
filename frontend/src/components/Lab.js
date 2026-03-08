@@ -18,27 +18,38 @@ export default function Lab() {
 
     // Fetch recipe analysis on load
     React.useEffect(() => {
-        if (!selectedOption) return;
+        if (!selectedOption) {
+            setLoadingAnalysis(false);
+            return;
+        }
+
+        // AbortController prevents state updates on unmounted component (memory leak fix)
+        const controller = new AbortController();
 
         const analyzeRecipe = async () => {
             try {
                 const res = await axios.post('http://localhost:10000/api/analyze-recipe', {
                     alternative: selectedOption.alternative,
                     language: 'English'
-                });
+                }, { signal: controller.signal });
                 if (res.data.status === 'success') {
                     setRecipeAnalysis(res.data.analysis);
                 }
             } catch (err) {
+                if (axios.isCancel(err)) return; // Navigated away — ignore
                 console.error("Failed to analyze recipe", err);
-                // Graceful degradation: If analysis fails, we just don't show the dynamic swaps,
-                // and rely solely on the custom text box.
+                // Graceful degradation: analysis panel simply won't show; user can still type custom notes.
             } finally {
-                setLoadingAnalysis(false);
+                if (!controller.signal.aborted) {
+                    setLoadingAnalysis(false);
+                }
             }
         };
 
         analyzeRecipe();
+
+        // Cleanup: abort in-flight request when component unmounts or selectedOption changes
+        return () => controller.abort();
     }, [selectedOption]);
 
     if (!selectedOption) {
@@ -75,7 +86,7 @@ export default function Lab() {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:10000/formulate', {
+            const response = await axios.post('http://localhost:10000/api/formulate', {
                 alternative: selectedOption.alternative,
                 chemical_replaced: selectedOption.corrected_chemical || context.chemical,
                 crop: context.crop,

@@ -16,18 +16,18 @@ export default function FarmDetails() {
     useEffect(() => {
         const fetchFarmData = async () => {
             try {
-                // Fetch user's farms to find this specific one
-                const farmsRes = await axios.get('http://localhost:10000/api/farms?user_id=ashwanth_demo');
-                const matchedFarm = farmsRes.data.farms.find(f => f._id.$oid === id);
+                // Efficient: fetch single farm by ID directly
+                const farmRes = await axios.get(`http://localhost:10000/api/farms/${id}?user_id=ashwanth_demo`);
+                const matchedFarm = farmRes.data.farm;
 
                 if (!matchedFarm) {
-                    setError('Sector not found.');
+                    setError('Farm not found.');
                     setLoading(false);
                     return;
                 }
                 setFarm(matchedFarm);
 
-                // Fetch user's formualtions and filter for this farm
+                // Fetch formulations and filter for this farm
                 const plansRes = await axios.get('http://localhost:10000/api/formulations?user_id=ashwanth_demo');
                 const allPlans = plansRes.data.plans || [];
 
@@ -47,7 +47,7 @@ export default function FarmDetails() {
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching farm details:', err);
-                setError('Failed to retrieve sector intelligence. Central API may be offline.');
+                setError('Failed to load farm data. Please try again.');
                 setLoading(false);
             }
         };
@@ -75,7 +75,7 @@ export default function FarmDetails() {
         return (
             <div className="flow-page" style={{ padding: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ width: '40px', height: '40px', border: '3px solid #e2e8f0', borderTopColor: '#10b981', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                <p style={{ color: '#64748b' }}>Accessing Logic Database...</p>
+                <p style={{ color: '#64748b' }}>Loading farm data...</p>
             </div>
         );
     }
@@ -123,7 +123,7 @@ export default function FarmDetails() {
                 {/* ACTIVE LOGIC */}
                 <section>
                     <h2 style={{ fontSize: '1.4rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontWeight: '700' }}>
-                        <FlaskConical size={24} color="#10b981" /> Active Logic
+                        <FlaskConical size={24} color="#10b981" /> Active Plans
                     </h2>
 
                     {activePlans.length > 0 ? (
@@ -145,7 +145,7 @@ export default function FarmDetails() {
                                             </div>
                                             <div>
                                                 <h3 style={{ margin: '0 0 4px 0', fontSize: '1.3rem', color: '#065f46', fontWeight: '700' }}>{plan.context.alternative}</h3>
-                                                <p style={{ margin: 0, color: '#047857', fontSize: '0.95rem' }}>Replacing: <span style={{ fontWeight: '600' }}>{plan.context.chemical_replaced || plan.context.chemical}</span></p>
+                                                <p style={{ margin: 0, color: '#047857', fontSize: '0.95rem' }}>Replaces: <span style={{ fontWeight: '600' }}>{plan.context.chemical_replaced || plan.context.corrected_chemical || plan.context.chemical}</span></p>
                                             </div>
                                         </div>
                                         <div style={{ textAlign: 'right', color: '#047857' }}>
@@ -167,7 +167,7 @@ export default function FarmDetails() {
                 {/* HISTORICAL LOGIC */}
                 <section>
                     <h2 style={{ fontSize: '1.4rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontWeight: '700' }}>
-                        <CalendarClock size={24} color="#94a3b8" /> Historical Architecture
+                        <CalendarClock size={24} color="#94a3b8" /> Past Plans
                     </h2>
 
                     {historicalPlans.length > 0 ? (
@@ -186,7 +186,7 @@ export default function FarmDetails() {
                                             </div>
                                             <div>
                                                 <h3 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', color: '#334155', fontWeight: '600' }}>{plan.context.alternative}</h3>
-                                                <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Replaced {plan.context.chemical_replaced || plan.context.chemical}</p>
+                                                <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>Replaced {plan.context.chemical_replaced || plan.context.corrected_chemical || plan.context.chemical}</p>
                                             </div>
                                         </div>
                                         <div style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '500' }}>
