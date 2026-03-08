@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Library, Activity, Sprout, ArrowRight, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import '../styles/flow.css';
+import '../styles/shared.css';
 
 export default function MyPlans() {
     const navigate = useNavigate();
@@ -59,9 +60,7 @@ export default function MyPlans() {
                     <p>Fetching your archives from MongoDB...</p>
                 </div>
             ) : error ? (
-                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '16px', borderRadius: '12px', color: '#b91c1c' }}>
-                    {error}
-                </div>
+                <div className="error-banner">{error}</div>
             ) : plans.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f8fafc', borderRadius: '20px', border: '2px dashed #cbd5e1' }}>
                     <Activity size={48} color="#94a3b8" style={{ marginBottom: '16px' }} />
@@ -79,25 +78,8 @@ export default function MyPlans() {
                         return (
                             <div
                                 key={plan._id.$oid}
-                                style={{
-                                    background: '#fff',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '16px',
-                                    padding: '24px',
-                                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                                    cursor: 'pointer'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)';
-                                }}
+                                className="card card-hover"
+                                style={{ padding: '24px', display: 'flex', flexDirection: 'column' }}
                                 onClick={() => openPlan(plan)}
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>

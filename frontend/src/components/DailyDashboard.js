@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Calendar, CheckCircle2, Circle, Loader2, Sparkles, AlertCircle, ArrowRight, Leaf, Clock } from 'lucide-react';
 import '../styles/flow.css';
+import '../styles/shared.css';
 
 export default function DailyDashboard() {
     const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function DailyDashboard() {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh', flexDirection: 'column', gap: '16px' }}>
                 <Loader2 size={40} color="#10b981" className="spin" />
-                <p style={{ color: '#64748b', fontWeight: '500' }}>Loading your farm schedule...</p>
+                <p className="text-muted font-500">Loading your farm schedule...</p>
             </div>
         );
     }
@@ -116,30 +117,30 @@ export default function DailyDashboard() {
 
             {/* ── Stats Bar ── */}
             {totalActive > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '32px' }}>
+                <div className="stats-grid">
                     {[
-                        { label: 'Active Plans', value: totalActive, color: '#3b82f6', bg: '#eff6ff' },
-                        { label: "Today's Tasks", value: totalTasksToday, color: '#f59e0b', bg: '#fffbeb' },
-                        { label: 'Done Today', value: completedTasksToday, color: '#10b981', bg: '#ecfdf5' },
+                        { label: 'Active Plans', value: totalActive, color: '#3b82f6', bg: '#eff6ff', border: '#3b82f622' },
+                        { label: "Today's Tasks", value: totalTasksToday, color: '#f59e0b', bg: '#fffbeb', border: '#f59e0b22' },
+                        { label: 'Done Today', value: completedTasksToday, color: '#10b981', bg: '#ecfdf5', border: '#10b98122' },
                     ].map(stat => (
-                        <div key={stat.label} style={{ background: stat.bg, border: `1px solid ${stat.color}22`, borderRadius: '12px', padding: '16px 20px' }}>
-                            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: stat.color, lineHeight: 1 }}>{stat.value}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+                        <div key={stat.label} className="stat-card" style={{ background: stat.bg, borderColor: stat.border }}>
+                            <div className="stat-num" style={{ color: stat.color }}>{stat.value}</div>
+                            <div className="stat-label">{stat.label}</div>
                         </div>
                     ))}
                 </div>
             )}
 
             {error && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '16px', borderRadius: '12px', color: '#b91c1c', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="error-banner">
                     <AlertCircle size={20} /> {error}
                 </div>
             )}
 
             {/* ── Empty State ── */}
             {todayTasksByPlan.length === 0 && !error && (
-                <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '20px', padding: '64px 24px', textAlign: 'center' }}>
-                    <div style={{ width: '64px', height: '64px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <div className="empty-state">
+                    <div className="empty-state-icon-container">
                         <Sparkles size={32} color="#94a3b8" />
                     </div>
                     <h2 style={{ color: '#334155', marginBottom: '8px', fontSize: '1.4rem' }}>All done for today!</h2>
@@ -177,8 +178,8 @@ export default function DailyDashboard() {
                             overflow: 'hidden',
                         }}>
                             {/* Progress Strip */}
-                            <div style={{ height: '3px', background: '#f1f5f9' }}>
-                                <div style={{ height: '100%', width: `${progress}%`, background: isAllDone ? '#10b981' : 'linear-gradient(90deg, #3b82f6, #8b5cf6)', transition: 'width 0.5s cubic-bezier(0.4,0,0.2,1)', borderRadius: '0 3px 3px 0' }} />
+                            <div className="progress-track">
+                                <div className={`progress-fill ${isAllDone ? 'done' : ''}`} style={{ width: `${progress}%` }} />
                             </div>
 
                             {/* Card Header */}
@@ -205,9 +206,7 @@ export default function DailyDashboard() {
                                     </div>
                                     <button
                                         onClick={() => navigate('/plan-summary', { state: { formulation_data: plan.formulation_data, context: plan.context, is_saved: true, plan_id: planId, completed_task_ids: plan.completed_task_ids } })}
-                                        style={{ background: 'transparent', border: '1px solid #e2e8f0', padding: '6px 14px', borderRadius: '8px', color: '#475569', fontWeight: '600', cursor: 'pointer', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s ease' }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                                        className="ghost-btn"
                                     >
                                         Full Roadmap <ArrowRight size={13} />
                                     </button>
@@ -261,7 +260,7 @@ export default function DailyDashboard() {
 
                             {/* All Done Banner */}
                             {isAllDone && (
-                                <div style={{ margin: '0 16px 16px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', color: '#15803d', fontSize: '0.9rem', fontWeight: '600' }}>
+                                <div className="success-banner" style={{ margin: '0 16px 16px' }}>
                                     <CheckCircle2 size={18} /> All Day {plan.currentDay} tasks completed! Great work.
                                 </div>
                             )}

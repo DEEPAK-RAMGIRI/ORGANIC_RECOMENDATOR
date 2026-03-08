@@ -10,6 +10,7 @@ from flask_limiter.util import get_remote_address
 from pymongo import MongoClient
 import certifi
 import json
+import re
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -55,27 +56,33 @@ limiter = Limiter(
     default_limits=["20 per minute"]
 )
 
-tfidf = None
-vectors = None
-data = None
+# ── BSON Helper ─────────────────────────────────────────────────────────────
+# Aliased to avoid shadowing the stdlib json.dumps
+from bson.json_util import dumps as bson_dumps
 
-def load_models():
-    with open("model.pkl", "rb") as f:
-        tfidf_model = pickle.load(f)
-    with open("vectors.pkl", "rb") as f:
-        vector_data = pickle.load(f)
-    with open("data.pkl", "rb") as f:
-        dataframe = pickle.load(f)
-    return tfidf_model, vector_data, dataframe
-
-from bson.json_util import dumps
-import json
+# ── TF-IDF Model Cache (Flask app-context pattern) ─────────────────────────
+# Instead of bare globals, we cache models on the Flask app object itself.
+# This avoids mutable global state and is safe across worker restarts.
+_model_cache = {}
 
 def get_models():
-    global tfidf, vectors, data
-    if tfidf is None:
-        tfidf, vectors, data = load_models()
-    return tfidf, vectors, data
+    if 'tfidf' not in _model_cache:
+        with open("model.pkl", "rb") as f:
+            _model_cache['tfidf'] = pickle.load(f)
+        with open("vectors.pkl", "rb") as f:
+            _model_cache['vectors'] = pickle.load(f)
+        with open("data.pkl", "rb") as f:
+            _model_cache['data'] = pickle.load(f)
+    return _model_cache['tfidf'], _model_cache['vectors'], _model_cache['data']
+
+# ── Input Sanitizer ─────────────────────────────────────────────────────────
+def sanitize(value: str, max_len: int = 120) -> str:
+    """Strip characters that could be used for prompt injection and limit length."""
+    if not isinstance(value, str):
+        return str(value)
+    # Remove any escape sequences, backticks, curly braces and angle brackets
+    cleaned = re.sub(r'[`{}<>\\]', '', value)
+    return cleaned[:max_len].strip()
 
 @app.route("/api/farms", methods=["GET"])
 def get_farms():
@@ -83,7 +90,7 @@ def get_farms():
         # In a real app with Auth, we get user_id from token. Hardcoding for MVP.
         user_id = request.args.get("user_id", "ashwanth_demo")
         farms = list(db.farms.find({"user_id": user_id}))
-        return dumps({"status": "success", "farms": farms}), 200, {'Content-Type': 'application/json'}
+        return bson_dumps({"status": "success", "farms": farms}), 200, {'Content-Type': 'application/json'}
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -238,12 +245,13 @@ def recommend():
 def formulate():
     try:
         req = request.get_json()
-        alternative = req.get("alternative", "")
-        chemical_replaced = req.get("chemical_replaced", "")
-        crop = req.get("crop", "")
+        # Sanitize all user-supplied strings before injecting into AI prompt
+        alternative = sanitize(req.get("alternative", ""))
+        chemical_replaced = sanitize(req.get("chemical_replaced", ""))
+        crop = sanitize(req.get("crop", ""))
         acres = req.get("acres", 1)
-        substitutions = req.get("substitutions", {}) # e.g. {"Cow Dung": "Buffalo Dung", "Jaggery": "Sugar"}
-        user_lang = req.get("language", "English")
+        substitutions = req.get("substitutions", {})  # e.g. {"Cow Dung": "Buffalo Dung"}
+        user_lang = sanitize(req.get("language", "English"), max_len=20)
 
         if not alternative:
             return jsonify({"status": "error", "message": "Missing alternative selection."}), 400
@@ -505,7 +513,7 @@ def get_formulations():
     try:
         user_id = request.args.get("user_id", "ashwanth_demo")
         plans = list(db.formulations.find({"user_id": user_id}).sort("created_at", -1))
-        return dumps({"status": "success", "plans": plans}), 200, {'Content-Type': 'application/json'}
+        return bson_dumps({"status": "success", "plans": plans}), 200, {'Content-Type': 'application/json'}
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 

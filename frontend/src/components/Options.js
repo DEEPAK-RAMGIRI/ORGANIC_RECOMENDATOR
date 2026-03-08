@@ -48,8 +48,11 @@ export default function Options() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
                 {options.map((opt, index) => {
-                    const isFast = parseInt(opt.prep_time) < 5 || opt.prep_time.includes('Hour');
-                    const confidencePercent = (opt.confidence * 100).toFixed(0);
+                    const prepDaysMatch = opt.prep_time.match(/(\d+)/);
+                    const firstDayNum = prepDaysMatch ? parseInt(prepDaysMatch[1]) : 99;
+                    const isFast = firstDayNum < 5 || opt.prep_time.toLowerCase().includes('hour');
+                    const rawConfidence = parseFloat(opt.confidence) || 0;
+                    const confidencePercent = Math.min(rawConfidence * 100, 100).toFixed(0);
 
                     return (
                         <div

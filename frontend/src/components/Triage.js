@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Search, Loader2, PlusCircle, X } from 'lucide-react';
 import axios from 'axios';
 import '../styles/flow.css';
+import '../styles/shared.css';
 
 export default function Triage() {
     const navigate = useNavigate();
@@ -60,7 +61,7 @@ export default function Triage() {
                 await fetchFarms(); // Refresh list
             }
         } catch (err) {
-            alert('Failed to save farm.');
+            setError('Failed to save farm. Please try again.');
         } finally {
             setSavingFarm(false);
         }

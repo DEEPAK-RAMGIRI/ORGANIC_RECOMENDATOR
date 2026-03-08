@@ -1,1 +1,19 @@
+# Editor
 .vscode/
+
+# Secrets
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+build/
+
+# Logs & temp files
+err.txt
+*.log

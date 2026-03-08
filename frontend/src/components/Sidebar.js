@@ -7,7 +7,7 @@ export default function Sidebar() {
     const location = useLocation();
 
     const navItems = [
-        { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
+        { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
         { name: 'Start Triage', path: '/triage', icon: <Stethoscope size={20} /> },
         { name: 'My Plans', path: '/my-plans', icon: <Library size={20} /> },
         { name: 'Farm Portfolio', path: '/farms', icon: <Tractor size={20} /> },
