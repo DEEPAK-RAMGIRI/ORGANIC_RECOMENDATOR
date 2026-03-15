@@ -1,9 +1,52 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
-import Recommend from './components/Recommend'; 
-import Dashboard from './components/Dashboard'; // 1. Import the new component
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import Sidebar from './components/Sidebar';
+import ErrorBoundary from './components/ErrorBoundary';
+import LandingPage from './components/LandingPage';
+import Triage from './components/Triage';
+import Options from './components/Options';
+import Lab from './components/Lab';
+import DailyDashboard from './components/DailyDashboard';
+import PlanSummary from './components/PlanSummary';
+import MyPlans from './components/MyPlans';
+import ManageFarms from './components/ManageFarms';
+import FarmDetails from './components/FarmDetails';
 import { logEnv } from './config';
+
+function AppLayout() {
+  const location = useLocation();
+  const isLanding = location.pathname === '/';
+
+  if (isLanding) {
+    return (
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+        </Routes>
+      </ErrorBoundary>
+    );
+  }
+
+  return (
+    <div className="app-layout">
+      <Sidebar />
+      <main className="main-content-area">
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/dashboard" element={<DailyDashboard />} />
+            <Route path="/triage" element={<Triage />} />
+            <Route path="/options" element={<Options />} />
+            <Route path="/lab" element={<Lab />} />
+            <Route path="/plan-summary" element={<PlanSummary />} />
+            <Route path="/my-plans" element={<MyPlans />} />
+            <Route path="/farms" element={<ManageFarms />} />
+            <Route path="/farms/:id" element={<FarmDetails />} />
+          </Routes>
+        </ErrorBoundary>
+      </main>
+    </div>
+  );
+}
 
 function App() {
   useEffect(() => {
@@ -12,17 +55,9 @@ function App() {
 
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/recommend" element={<Recommend />} />
-          
-          {/* 2. Add this new route */}
-          <Route path="/dashboard" element={<Dashboard />} /> 
-        </Routes>
-      </div>
+      <AppLayout />
     </Router>
   );
 }
 
-export default App; 
+export default App;
