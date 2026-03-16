@@ -213,16 +213,16 @@ export default function ManageFarms() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', color: '#475569', fontWeight: '600' }}>Farm/Estate Name</label>
-                                <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.name} onChange={e => setNewFarm({ ...newFarm, name: e.target.value })} placeholder="e.g., Sunrise Valley Farms" />
+                                <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.name} onChange={e => setNewFarm({ ...newFarm, name: e.target.value })} placeholder="e.g. uday farm1" />
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', color: '#475569', fontWeight: '600' }}>Plot Identifier</label>
-                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.plot} onChange={e => setNewFarm({ ...newFarm, plot: e.target.value })} placeholder="e.g., North Block A" />
+                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.plot} onChange={e => setNewFarm({ ...newFarm, plot: e.target.value })} placeholder="e.g., hasanparthy" />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', color: '#475569', fontWeight: '600' }}>Target Crop</label>
-                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.crop} onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })} placeholder="e.g., Organic Cotton" />
+                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.crop} onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })} placeholder="e.g., Cotton" />
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
@@ -236,9 +236,6 @@ export default function ManageFarms() {
                                         <option value="Red">Red Soil</option>
                                         <option value="Black">Black Soil</option>
                                         <option value="Alluvial">Alluvial Soil</option>
-                                        <option value="Loamy">Loamy Soil</option>
-                                        <option value="Laterite">Laterite Soil</option>
-                                        <option value="Sandy">Sandy Soil</option>
                                     </select>
                                 </div>
                             </div>
