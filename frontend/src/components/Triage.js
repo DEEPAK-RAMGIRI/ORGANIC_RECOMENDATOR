@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Search, Loader2, PlusCircle, X } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import '../styles/flow.css';
 import '../styles/shared.css';
 
@@ -24,7 +25,7 @@ export default function Triage() {
     const fetchFarms = async () => {
         setLoadingFarms(true);
         try {
-            const response = await axios.get('http://localhost:10000/api/farms');
+            const response = await axios.get(`${API_BASE_URL}/api/farms`);
             const fetchedFarms = response.data.farms || [];
             setFarms(fetchedFarms);
             if (fetchedFarms.length > 0) {
@@ -50,7 +51,7 @@ export default function Triage() {
         }
         setSavingFarm(true);
         try {
-            const res = await axios.post('http://localhost:10000/api/farms', {
+            const res = await axios.post(`${API_BASE_URL}/api/farms`, {
                 ...newFarm,
                 user_id: 'ashwanth_demo'
             });
@@ -85,7 +86,7 @@ export default function Triage() {
             const selectedFarm = farms.find(f => f._id.$oid === selectedFarmKey);
             const cropToUse = selectedFarm.crop || 'Unknown';
 
-            const response = await axios.post('http://localhost:10000/recommend', {
+            const response = await axios.post(`${API_BASE_URL}/recommend`, {
                 chemical: chemical,
                 crop: cropToUse,
                 acres: selectedFarm.acres || 1,
@@ -127,7 +128,7 @@ export default function Triage() {
 
                 <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span><MapPin size={16} /> Which plot are we treating?</span>
-                    <button onClick={() => setShowModal(true)} style={{ background: 'none', border: 'none', color: '#2ecc71', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <button onClick={() => setShowModal(true)} style={{ background: 'none', border: 'none', color: '#10b981', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <PlusCircle size={16} /> New Plot
                     </button>
                 </label>
@@ -199,7 +200,7 @@ export default function Triage() {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Acres</label>
-                                    <input type="number" className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.acres} onChange={e => setNewFarm({ ...newFarm, acres: e.target.value })} />
+                                    <input type="number" min="0.1" step="0.1" className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.acres} onChange={e => setNewFarm({ ...newFarm, acres: e.target.value })} />
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Soil Type</label>

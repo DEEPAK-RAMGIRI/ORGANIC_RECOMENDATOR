@@ -11,6 +11,9 @@ import PlanSummary from './components/PlanSummary';
 import MyPlans from './components/MyPlans';
 import ManageFarms from './components/ManageFarms';
 import FarmDetails from './components/FarmDetails';
+import SavingsAnalytics from './components/SavingsAnalytics';
+import TransitionCalculator from './components/TransitionCalculator';
+import ImpactVisualizer from './components/ImpactVisualizer';
 import { logEnv } from './config';
 
 function AppLayout() {
@@ -41,6 +44,9 @@ function AppLayout() {
             <Route path="/my-plans" element={<MyPlans />} />
             <Route path="/farms" element={<ManageFarms />} />
             <Route path="/farms/:id" element={<FarmDetails />} />
+            <Route path="/analytics" element={<SavingsAnalytics />} />
+            <Route path="/calculator" element={<TransitionCalculator />} />
+            <Route path="/impact" element={<ImpactVisualizer />} />
           </Routes>
         </ErrorBoundary>
       </main>

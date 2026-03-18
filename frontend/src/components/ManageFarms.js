@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, PlusCircle, Sprout, Edit3, Trash2, CalendarClock, Beaker, MapPin } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import axios from 'axios';
 import '../styles/flow.css';
 
@@ -21,11 +22,11 @@ export default function ManageFarms() {
         setLoading(true);
         try {
             // Fetch farms for the user
-            const farmsRes = await axios.get('http://localhost:10000/api/farms?user_id=ashwanth_demo');
+            const farmsRes = await axios.get(`${API_BASE_URL}/api/farms?user_id=ashwanth_demo`);
             const userFarms = farmsRes.data.farms || [];
 
             // Fetch formulation history for the user
-            const plansRes = await axios.get('http://localhost:10000/api/formulations?user_id=ashwanth_demo');
+            const plansRes = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
             const allPlans = plansRes.data.plans || [];
 
             // Tie plans to farms
@@ -67,7 +68,7 @@ export default function ManageFarms() {
         }
         setSavingFarm(true);
         try {
-            const res = await axios.post('http://localhost:10000/api/farms', {
+            const res = await axios.post(`${API_BASE_URL}/api/farms`, {
                 ...newFarm,
                 user_id: 'ashwanth_demo'
             });
@@ -86,7 +87,7 @@ export default function ManageFarms() {
     const handleDelete = async (farmId) => {
         setConfirmDeleteId(null);
         try {
-            await axios.delete(`http://localhost:10000/api/farms/${farmId}`);
+            await axios.delete(`${API_BASE_URL}/api/farms/${farmId}`);
             await fetchFarmsAndHistory();
         } catch (err) {
             setError('Failed to delete farm. Please try again.');

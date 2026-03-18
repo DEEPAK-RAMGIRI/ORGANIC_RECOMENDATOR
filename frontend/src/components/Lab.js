@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Settings2, Loader2, ArrowLeft, FlaskConical, Beaker, Zap, Clock } from 'lucide-react';
+import { FlaskConical, Beaker, Clock, ShieldAlert, CheckCircle2, ArrowRight, Loader2, ChevronRight, Play, Check, AlertTriangle, Save, Microscope, History, Settings2, Zap, ArrowLeft } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import axios from 'axios';
 import '../styles/flow.css';
 
@@ -28,7 +29,7 @@ export default function Lab() {
 
         const analyzeRecipe = async () => {
             try {
-                const res = await axios.post('http://localhost:10000/api/analyze-recipe', {
+                const res = await axios.post(`${API_BASE_URL}/api/analyze-recipe`, {
                     alternative: selectedOption.alternative,
                     language: 'English'
                 }, { signal: controller.signal });
@@ -86,7 +87,7 @@ export default function Lab() {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:10000/api/formulate', {
+            const response = await axios.post(`${API_BASE_URL}/api/formulate`, {
                 alternative: selectedOption.alternative,
                 chemical_replaced: selectedOption.corrected_chemical || context.chemical,
                 crop: context.crop,
@@ -160,7 +161,7 @@ export default function Lab() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.85rem', marginBottom: '4px' }}>
                                 <Beaker size={14} /> Replaces
                             </div>
-                            <div style={{ fontWeight: '600', color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedOption.corrected_chemical || context.chemical}</div>
+                            <div style={{ fontWeight: '600', color: '#334155', wordBreak: 'break-word', lineHeight: '1.4' }}>{selectedOption.corrected_chemical || context.chemical}</div>
                         </div>
                     </div>
                 </div>
@@ -194,7 +195,7 @@ export default function Lab() {
                                                 CRITICAL (Fixed)
                                             </span>
                                         ) : (
-                                            <span style={{ background: '#dcfce7', color: '#15803d', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                            <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                                                 SWAPPABLE
                                             </span>
                                         )}

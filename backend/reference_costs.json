@@ -1,0 +1,57 @@
+{
+  "reference_rates": {
+    "chemical_prices": {
+      "Urea (Eruvu / Khad)": { "price": 266.5, "unit": "45kg Bag" },
+      "DAP (Eruvu / Khad)": { "price": 1350, "unit": "50kg Bag" },
+      "MOP (Eruvu / Khad)": { "price": 1700, "unit": "50kg Bag" },
+      "19 19 19 (NPK)": { "price": 150, "unit": "1kg Pouch" },
+      "20 20 20 (NPK)": { "price": 160, "unit": "1kg Pouch" },
+      "28 28 0 (Gromor)": { "price": 1450, "unit": "50kg Bag" },
+      "Confidor (Imidacloprid)": { "price": 300, "unit": "100ml Bottle" },
+      "Proclaim (Emamectin Benzoate)": { "price": 450, "unit": "100g Pack" },
+      "Tracer (Spinosad)": { "price": 1850, "unit": "75ml Bottle" },
+      "Roundup (Glyphosate)": { "price": 600, "unit": "1L Jug" },
+      "Gramoxone (Paraquat)": { "price": 550, "unit": "1L Jug" },
+      "Bavistin (Carbendazim - Tegulu mandu)": { "price": 700, "unit": "500g Pack" },
+      "Mono / Monocrotophos (Purugu mandu)": { "price": 450, "unit": "1L Jug" },
+      "Coragen / Chlorantraniliprole": { "price": 1800, "unit": "60ml Bottle" },
+      "Ammonium Sulphate": { "price": 600, "unit": "50kg Bag" },
+      "Tilt (Propiconazole)": { "price": 750, "unit": "250ml Bottle" },
+      "Ridomil (Metalaxyl)": { "price": 600, "unit": "500g Pack" },
+      "Asataf (Acephate)": { "price": 450, "unit": "500g Pack" },
+      "Rogor (Dimethoate)": { "price": 350, "unit": "500ml Bottle" },
+      "Cartap Hydrochloride": { "price": 500, "unit": "500g Pack" },
+      "Dursban (Chlorpyrifos)": { "price": 400, "unit": "1L Bottle" },
+      "Fipronil (Regent)": { "price": 800, "unit": "1L Bottle" },
+      "Cypermethrin": { "price": 450, "unit": "1L Bottle" }
+    },
+    "crop_requirements": {
+      "Paddy (Vari / Tari / Dhan / Chawal / Rice)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 2, "apps_per_yr": 3, "cycle": "Seasonal" },
+        "DAP (Eruvu / Khad)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 1, "cycle": "Seasonal" },
+        "Stem Borer (Kandam tholuchu purugu / Tana Chedak)": { "quantity_per_acre_per_app": 0.5, "apps_per_yr": 2, "cycle": "Seasonal" }
+      },
+      "Chilli (Mirapa / Mirchi)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 3, "apps_per_yr": 4, "cycle": "Seasonal" },
+        "Confidor (Imidacloprid)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 4, "cycle": "Seasonal" }
+      },
+      "Mango (Mamidi/Aam) & Sweet Orange (Bathayi)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 5, "apps_per_yr": 1, "cycle": "Yearly" },
+        "DAP (Eruvu / Khad)": { "quantity_per_acre_per_app": 3, "apps_per_yr": 1, "cycle": "Yearly" }
+      },
+      "Sugarcane (Cheraku / Ganna)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 10, "apps_per_yr": 1, "cycle": "Yearly" },
+        "Ammonium Sulphate": { "quantity_per_acre_per_app": 4, "apps_per_yr": 1, "cycle": "Yearly" }
+      },
+      "Maize (Mokka Jonna / Makka / Bhutta / Corn)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 2, "apps_per_yr": 2, "cycle": "Seasonal" },
+        "Atrataf (Atrazine)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 1, "cycle": "Seasonal" }
+      }
+    },
+    "organic_costs": {
+      "Jeevamrutham": { "price": 50, "unit": "200L Brew", "dosage_per_acre": 1, "apps_per_yr": 4 },
+      "Neem Oil (10000 ppm)": { "price": 450, "unit": "1L Bottle", "dosage_per_acre": 0.5, "apps_per_yr": 3 },
+      "Dashaparni Kashayam": { "price": 0, "unit": "Self-made", "dosage_per_acre": 1, "apps_per_yr": 4 }
+    }
+  }
+}

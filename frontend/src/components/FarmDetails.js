@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, MapPin, Sprout, CalendarClock, Beaker, FlaskConical, AlertCircle } from 'lucide-react';
+import { Tractor, MapPin, Sprout, Ruler, Activity, Clock, CheckCircle2, ChevronRight, Loader2, ArrowLeft, History, FlaskConical, Trash2, Calendar, AlertTriangle, Beaker, CalendarClock, AlertCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import '../styles/flow.css';
 
 export default function FarmDetails() {
@@ -17,7 +18,7 @@ export default function FarmDetails() {
         const fetchFarmData = async () => {
             try {
                 // Efficient: fetch single farm by ID directly
-                const farmRes = await axios.get(`http://localhost:10000/api/farms/${id}?user_id=ashwanth_demo`);
+                const farmRes = await axios.get(`${API_BASE_URL}/api/farms/${id}?user_id=ashwanth_demo`);
                 const matchedFarm = farmRes.data.farm;
 
                 if (!matchedFarm) {
@@ -28,7 +29,7 @@ export default function FarmDetails() {
                 setFarm(matchedFarm);
 
                 // Fetch formulations and filter for this farm
-                const plansRes = await axios.get('http://localhost:10000/api/formulations?user_id=ashwanth_demo');
+                const plansRes = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
                 const allPlans = plansRes.data.plans || [];
 
                 // Keep only plans bound to this exact farm ID
@@ -58,13 +59,14 @@ export default function FarmDetails() {
     const handlePlanClick = (plan) => {
         navigate('/plan-summary', {
             state: {
+                from: '/farms',
                 formulation_data: plan.formulation_data,
                 custom_instructions: plan.custom_instructions,
                 substitutions: plan.substitutions,
                 analysis: plan.analysis,
                 is_saved: true,
-                saved_plan_id: plan._id.$oid,
-                plan_id: plan._id.$oid,
+                saved_plan_id: plan._id.$oid || plan._id,
+                plan_id: plan._id.$oid || plan._id,
                 completed_task_ids: plan.completed_task_ids || [],
                 context: plan.context
             }

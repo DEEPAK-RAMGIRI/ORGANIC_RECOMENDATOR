@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, CheckCircle2, Circle, Loader2, Sparkles, AlertCircle, ArrowRight, Leaf, Clock } from 'lucide-react';
+import { Calendar, CheckCircle2, Circle, Loader2, Sparkles, AlertCircle, ArrowRight, Leaf, Clock, PartyPopper, Trophy, ExternalLink } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import '../styles/flow.css';
 import '../styles/shared.css';
 
@@ -12,265 +13,278 @@ export default function DailyDashboard() {
     const [error, setError] = useState('');
     const [syncingTasks, setSyncingTasks] = useState({});
 
-    const fetchActivePlans = useCallback(async () => {
+    const fetchPlans = useCallback(async () => {
         try {
-            const response = await axios.get('http://localhost:10000/api/formulations?user_id=ashwanth_demo');
+            const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
             if (response.data.status === 'success') {
                 const allPlans = response.data.plans || [];
-                const active = allPlans.filter(p => p.status === 'PREPARING' || !p.status);
-                setPlans(active);
+                
+                // REFINED VISIBILITY LOGIC:
+                const now = new Date();
+                const visiblePlans = allPlans.filter(p => {
+                    if (p.diff_category === 'Active') return true;
+                    
+                    // Keep recently finished on dashboard for today
+                    const lastTouch = new Date(p.updated_at?.$date || p.updated_at || p.created_at?.$date || p.created_at);
+                    const diffHours = (now - lastTouch) / (1000 * 60 * 60);
+                    return diffHours < 24; 
+                });
+                
+                setPlans(visiblePlans);
             }
         } catch (err) {
-            setError('Could not connect to the server. Please ensure the backend is running.');
+            setError('System sync failure.');
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        fetchActivePlans();
-    }, [fetchActivePlans]);
+        fetchPlans();
+    }, [fetchPlans]);
 
     const calculateCurrentDay = (plan) => {
-        if (!plan.completed_task_ids || plan.completed_task_ids.length === 0) return 1;
         let dateStr = plan.start_date || plan.created_at;
         if (dateStr && dateStr.$date) dateStr = dateStr.$date;
         if (!dateStr) return 1;
-        const start = new Date(dateStr);
-        const now = new Date();
-        start.setHours(0, 0, 0, 0);
-        now.setHours(0, 0, 0, 0);
-        const diffTime = now.getTime() - start.getTime();
-        if (diffTime < 0) return 1;
-        return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+        const startDate = new Date(dateStr);
+        const today = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        
+        const diffDays = Math.round((today - startDate) / (1000 * 60 * 60 * 24));
+        return Math.max(1, diffDays + 1);
     };
 
     const toggleTask = async (planId, taskId, currentCompletedArray) => {
         const willBeCompleted = !currentCompletedArray.includes(taskId);
-        // Key by planId+taskId to avoid cross-plan collision (e.g. both plans have task_0_day_1)
         const syncKey = `${planId}_${taskId}`;
-        setSyncingTasks(prev => ({ ...prev, [syncKey]: true }));
+        
+        // Optimistic UI Update - NO FETCH here to prevent shaking
         setPlans(prev => prev.map(p => {
-            const id = typeof p._id === 'string' ? p._id : p._id.$oid;
-            if (id !== planId) return p;
+            const pId = p._id?.$oid || (typeof p._id === 'string' ? p._id : String(p._id));
+            const targetId = typeof planId === 'string' ? planId : (planId?.$oid || String(planId));
+            
+            if (pId !== targetId) return p;
             const newCompleted = willBeCompleted
                 ? [...(p.completed_task_ids || []), taskId]
                 : (p.completed_task_ids || []).filter(id => id !== taskId);
             return { ...p, completed_task_ids: newCompleted };
         }));
+
         try {
-            await axios.put('http://localhost:10000/api/tasks/sync', { plan_id: planId, task_id: taskId, is_completed: willBeCompleted });
+            setSyncingTasks(prev => ({ ...prev, [syncKey]: true }));
+            await axios.put(`${API_BASE_URL}/api/tasks/sync`, { plan_id: planId, task_id: taskId, is_completed: willBeCompleted });
         } catch (err) {
             console.error('Sync failed:', err);
-            fetchActivePlans();
+            // Revert on error
+            fetchPlans();
         } finally {
             setSyncingTasks(prev => ({ ...prev, [syncKey]: false }));
         }
+    };
+
+    const getPlanMetrics = (plan) => {
+        const currentDay = calculateCurrentDay(plan);
+        const allPrepTasks = plan.formulation_data?.preparation_tasks || [];
+        
+        // Find max day
+        let maxDay = 1;
+        let totalInstances = 0;
+        allPrepTasks.forEach(t => {
+            if (t.days) {
+                maxDay = Math.max(maxDay, ...t.days);
+                totalInstances += t.days.length;
+            }
+        });
+
+        const tasksDueToday = allPrepTasks
+            .map((t, idx) => ({ ...t, original_index: idx }))
+            .filter(t => t.days && t.days.includes(currentDay));
+        
+        const totalCompleted = plan.completed_task_ids?.length || 0;
+        
+        // A plan is ONLY truly done if everything is finished AND we've reached/passed the final day
+        const isFullyDone = totalCompleted >= totalInstances && currentDay >= maxDay;
+
+        return { currentDay, tasksDueToday, isFullyDone, maxDay };
+    };
+
+    const processedPlans = plans.map(plan => ({ ...plan, ...getPlanMetrics(plan) }));
+    const activePlans = processedPlans.filter(p => !p.isFullyDone && p.tasksDueToday.length > 0);
+    const completedPlansToday = processedPlans.filter(p => p.isFullyDone);
+
+    const openSummary = (plan) => {
+        navigate('/plan-summary', {
+            state: {
+                from: '/dashboard',
+                formulation_data: plan.formulation_data,
+                substitutions: plan.context?.substitutions || {},
+                custom_instructions: plan.context?.custom_instructions || '',
+                context: plan.context,
+                is_saved: true,
+                plan_id: plan._id?.$oid || plan._id,
+                completed_task_ids: plan.completed_task_ids || []
+            }
+        });
     };
 
     if (loading) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh', flexDirection: 'column', gap: '16px' }}>
                 <Loader2 size={40} color="#10b981" className="spin" />
-                <p className="text-muted font-500">Loading your farm schedule...</p>
+                <p className="font-600 uppercase tracking-widest text-xs color-subtle">Syncing local calendar...</p>
             </div>
         );
     }
 
-    const todayTasksByPlan = plans.map(plan => {
-        const currentDay = calculateCurrentDay(plan);
-        const allPrepTasks = plan.formulation_data?.preparation_tasks || [];
-        const tasksDueToday = allPrepTasks
-            .map((t, idx) => ({ ...t, original_index: idx }))
-            .filter(t => t.days && t.days.includes(currentDay));
-        return { ...plan, currentDay, tasksDueToday };
-    }).filter(p => p.tasksDueToday.length > 0);
-
-    const totalActive = plans.length;
-    const totalTasksToday = todayTasksByPlan.reduce((sum, p) => sum + p.tasksDueToday.length, 0);
-    const completedTasksToday = todayTasksByPlan.reduce((sum, plan) => {
-        return sum + plan.tasksDueToday.filter(t => {
-            const taskId = `task_${t.original_index}_day_${plan.currentDay}`;
-            return (plan.completed_task_ids || []).includes(taskId);
-        }).length;
-    }, 0);
-
-    // Get current time for greeting
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-
     return (
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
-
-            {/* ── Header ── */}
-            <div style={{ marginBottom: '32px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                    <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Calendar size={22} color="white" />
+        <div className="flow-page animate-fade-in" style={{ padding: '2rem 1rem' }}>
+            <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                
+                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '2.4rem', fontWeight: '900', color: '#0f172a' }}>
+                            Daily <span style={{ color: '#10b981' }}>Dashboard</span>
+                        </h1>
+                        <p style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '4px' }}>
+                            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                        </p>
                     </div>
-                    <h1 style={{ margin: 0, fontSize: '1.9rem', fontWeight: '800', color: '#0f172a' }}>
-                        Daily Action Board
-                    </h1>
-                </div>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '1rem', paddingLeft: '52px' }}>
-                    {greeting}. {totalActive > 0 ? `You have ${totalActive} active preparation${totalActive !== 1 ? 's' : ''}.` : 'Start a new formulation to get going.'}
-                </p>
-            </div>
+                </header>
 
-            {/* ── Stats Bar ── */}
-            {totalActive > 0 && (
-                <div className="stats-grid">
-                    {[
-                        { label: 'Active Plans', value: totalActive, color: '#3b82f6', bg: '#eff6ff', border: '#3b82f622' },
-                        { label: "Today's Tasks", value: totalTasksToday, color: '#f59e0b', bg: '#fffbeb', border: '#f59e0b22' },
-                        { label: 'Done Today', value: completedTasksToday, color: '#10b981', bg: '#ecfdf5', border: '#10b98122' },
-                    ].map(stat => (
-                        <div key={stat.label} className="stat-card" style={{ background: stat.bg, borderColor: stat.border }}>
-                            <div className="stat-num" style={{ color: stat.color }}>{stat.value}</div>
-                            <div className="stat-label">{stat.label}</div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {error && (
-                <div className="error-banner">
-                    <AlertCircle size={20} /> {error}
-                </div>
-            )}
-
-            {/* ── Empty State ── */}
-            {todayTasksByPlan.length === 0 && !error && (
-                <div className="empty-state">
-                    <div className="empty-state-icon-container">
-                        <Sparkles size={32} color="#94a3b8" />
-                    </div>
-                    <h2 style={{ color: '#334155', marginBottom: '8px', fontSize: '1.4rem' }}>All done for today!</h2>
-                    <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '360px', margin: '0 auto 24px', lineHeight: '1.6' }}>
-                        {totalActive > 0
-                            ? 'None of your active formulations require action today. Check back tomorrow!'
-                            : 'No active preparations yet. Start a triage to create your first organic plan.'}
-                    </p>
-                    <button
-                        onClick={() => navigate('/triage')}
-                        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '10px', fontSize: '0.95rem', fontWeight: '600', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                    >
-                        <Leaf size={18} /> Start New Triage <ArrowRight size={16} />
-                    </button>
-                </div>
-            )}
-
-            {/* ── Task Cards ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {todayTasksByPlan.map((plan) => {
-                    const planId = typeof plan._id === 'string' ? plan._id : plan._id.$oid;
-                    const completedCount = plan.tasksDueToday.filter(t =>
-                        (plan.completed_task_ids || []).includes(`task_${t.original_index}_day_${plan.currentDay}`)
-                    ).length;
-                    const totalCount = plan.tasksDueToday.length;
-                    const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-                    const isAllDone = completedCount === totalCount;
-
-                    return (
-                        <div key={planId} style={{
-                            background: '#ffffff',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '16px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)',
-                            overflow: 'hidden',
-                        }}>
-                            {/* Progress Strip */}
-                            <div className="progress-track">
-                                <div className={`progress-fill ${isAllDone ? 'done' : ''}`} style={{ width: `${progress}%` }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                    
+                    {/* ACTIVE TASKS SECTION */}
+                    {activePlans.length > 0 ? (
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                                <div style={{ height: '4px', width: '24px', background: '#10b981', borderRadius: '2px' }}></div>
+                                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    Today's Priority
+                                </h2>
                             </div>
 
-                            {/* Card Header */}
-                            <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f8fafc' }}>
-                                <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                        <span style={{ background: '#f0fdf4', color: '#15803d', fontSize: '0.72rem', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            PREPARING
-                                        </span>
-                                        <span style={{ color: '#94a3b8', fontSize: '0.82rem', fontWeight: '500' }}>
-                                            <Clock size={12} style={{ display: 'inline', marginRight: '3px', verticalAlign: 'middle' }} />
-                                            Day {plan.currentDay}
-                                        </span>
-                                    </div>
-                                    <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '700', color: '#0f172a' }}>{plan.context?.alternative}</h2>
-                                    <p style={{ margin: '2px 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
-                                        {plan.context?.plot} · {plan.context?.acres} Acres · {plan.context?.crop}
-                                    </p>
-                                </div>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                                    <div style={{ fontSize: '0.82rem', fontWeight: '600', color: isAllDone ? '#10b981' : '#64748b' }}>
-                                        {completedCount}/{totalCount} done
-                                    </div>
-                                    <button
-                                        onClick={() => navigate('/plan-summary', { state: { formulation_data: plan.formulation_data, context: plan.context, is_saved: true, plan_id: planId, completed_task_ids: plan.completed_task_ids } })}
-                                        className="ghost-btn"
-                                    >
-                                        Full Roadmap <ArrowRight size={13} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Tasks List */}
-                            <div style={{ padding: '12px 16px 16px' }}>
-                                {plan.tasksDueToday.map((task) => {
-                                    const taskId = `task_${task.original_index}_day_${plan.currentDay}`;
-                                    // Scope sync key by planId to prevent cross-plan spinner collision
-                                    const syncKey = `${planId}_${taskId}`;
-                                    const isCompleted = (plan.completed_task_ids || []).includes(taskId);
-                                    const isSyncing = syncingTasks[syncKey];
-
-                                    return (
-                                        <div
-                                            key={taskId}
-                                            onClick={() => !isSyncing && toggleTask(planId, taskId, plan.completed_task_ids || [])}
-                                            style={{
-                                                display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '14px 12px',
-                                                borderRadius: '10px', cursor: 'pointer',
-                                                transition: 'background 0.15s ease',
-                                                userSelect: 'none',
-                                                opacity: isSyncing ? 0.6 : 1,
-                                            }}
-                                            onMouseEnter={e => { if (!isSyncing) e.currentTarget.style.background = '#f8fafc'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                                        >
-                                            {/* Checkbox Icon */}
-                                            <div style={{ marginTop: '2px', flexShrink: 0 }}>
-                                                {isSyncing
-                                                    ? <Loader2 size={22} color="#10b981" className="spin" />
-                                                    : isCompleted
-                                                        ? <CheckCircle2 size={22} color="#10b981" fill="#10b981" strokeWidth={0} />
-                                                        : <Circle size={22} color="#cbd5e1" />
-                                                }
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                {activePlans.map(plan => (
+                                    <div key={plan._id?.$oid || plan._id} className="card" style={{ padding: '24px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                                            <div>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>
+                                                    Day {plan.currentDay} of {plan.maxDay}
+                                                </div>
+                                                <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '800' }}>{plan.context?.alternative} Preparation</h3>
                                             </div>
-
-                                            {/* Task Text */}
-                                            <p style={{
-                                                margin: 0, flex: 1, fontSize: '0.95rem', lineHeight: '1.6',
-                                                color: isCompleted ? '#94a3b8' : '#334155',
-                                                textDecoration: isCompleted ? 'line-through' : 'none',
-                                                fontWeight: '500',
-                                            }}>
-                                                {task.description}
-                                            </p>
+                                            <button 
+                                                className="ghost-btn" 
+                                                onClick={() => openSummary(plan)}
+                                                style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                                            >
+                                                View Roadmap <ExternalLink size={14} style={{ marginLeft: '4px' }} />
+                                            </button>
                                         </div>
-                                    );
-                                })}
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {plan.tasksDueToday.map((task) => {
+                                                const taskId = `task_${task.original_index}_day_${plan.currentDay}`;
+                                                const isCompleted = (plan.completed_task_ids || []).includes(taskId);
+                                                const isSyncing = syncingTasks[`${plan._id?.$oid || plan._id}_${taskId}`];
+
+                                                return (
+                                                    <div 
+                                                        key={taskId}
+                                                        onClick={() => !isSyncing && toggleTask(plan._id?.$oid || plan._id, taskId, plan.completed_task_ids || [])}
+                                                        style={{ 
+                                                            display: 'flex', 
+                                                            alignItems: 'flex-start', 
+                                                            gap: '16px', 
+                                                            padding: '18px', 
+                                                            borderRadius: '16px', 
+                                                            background: isCompleted ? '#f0fdfa' : '#ffffff',
+                                                            border: isCompleted ? '1px solid #05966930' : '1px solid #e2e8f0',
+                                                            cursor: isSyncing ? 'wait' : 'pointer',
+                                                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                            boxShadow: isCompleted ? 'none' : '0 1px 3px rgba(0,0,0,0.02)'
+                                                        }}
+                                                    >
+                                                        <div style={{ 
+                                                            flexShrink: 0, 
+                                                            width: '26px', 
+                                                            height: '26px', 
+                                                            display: 'flex', 
+                                                            alignItems: 'center', 
+                                                            justifyContent: 'center',
+                                                            marginTop: '1px' 
+                                                        }}>
+                                                            {isSyncing ? (
+                                                                <Loader2 size={20} className="spin" color="#10b981" />
+                                                            ) : isCompleted ? (
+                                                                <CheckCircle2 size={26} color="#059669" fill="#10b98115" strokeWidth={2.5} />
+                                                            ) : (
+                                                                <Circle size={24} color="#cbd5e1" strokeWidth={2} />
+                                                            )}
+                                                        </div>
+                                                        <span style={{ 
+                                                            fontSize: '1rem', 
+                                                            color: isCompleted ? '#065f46' : '#1e293b',
+                                                            fontWeight: isCompleted ? '600' : '500',
+                                                            lineHeight: '1.5',
+                                                            opacity: isCompleted ? 0.8 : 1
+                                                        }}>
+                                                            {task.step || task.description || task.desc}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : completedPlansToday.length === 0 ? (
+                        <div className="empty-state" style={{ padding: '60px 20px', background: '#fff' }}>
+                            <Calendar size={48} color="#cbd5e1" style={{ marginBottom: '20px' }} />
+                            <h3>Clear Schedule</h3>
+                            <p>No organic preparation tasks scheduled for today. Check your Library to start a new Triage plan.</p>
+                            <button className="secondary-btn mt-6" onClick={() => navigate('/my-plans')}>Open Library</button>
+                        </div>
+                    ) : null}
+
+                    {/* COMPLETED TODAY SECTION */}
+                    {completedPlansToday.length > 0 && (
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                                <div style={{ height: '4px', width: '24px', background: '#3b82f6', borderRadius: '2px' }}></div>
+                                <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                    Mission Accomplished
+                                </h2>
                             </div>
 
-                            {/* All Done Banner */}
-                            {isAllDone && (
-                                <div className="success-banner" style={{ margin: '0 16px 16px' }}>
-                                    <CheckCircle2 size={18} /> All Day {plan.currentDay} tasks completed! Great work.
-                                </div>
-                            )}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {completedPlansToday.map(plan => (
+                                    <div key={plan._id?.$oid || plan._id} className="card" style={{ padding: '20px', background: 'linear-gradient(to right, #f0fdf4, #ffffff)', border: '1px solid #10b98130', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            <div style={{ background: '#10b981', padding: '10px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}>
+                                                <Trophy size={24} color="#fff" />
+                                            </div>
+                                            <div>
+                                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: '#065f46' }}>{plan.context?.alternative}</h3>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: '#059669', fontWeight: '600' }}>
+                                                    <PartyPopper size={14} /> View Application Phase
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button className="ghost-btn" onClick={() => openSummary(plan)}>
+                                            Review Application <ArrowRight size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    );
-                })}
+                    )}
+
+                </div>
             </div>
         </div>
     );

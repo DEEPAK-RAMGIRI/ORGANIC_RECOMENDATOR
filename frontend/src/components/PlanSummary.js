@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, CheckCircle2, ListChecks, FlaskConical, Bookmark, Loader2 } from 'lucide-react';
+import { AlertTriangle, Clock, CheckCircle2, ShoppingCart, Printer, ArrowRight, Activity, Beaker, ShieldCheck, ChevronRight, Save, Info, ArrowLeft, Bookmark, FlaskConical, ListChecks, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import '../styles/flow.css';
 
 export default function PlanSummary() {
@@ -31,7 +32,7 @@ export default function PlanSummary() {
     setIsSaving(true);
     setSaveError('');
     try {
-      const response = await axios.post('http://localhost:10000/api/formulations', {
+      const response = await axios.post(`${API_BASE_URL}/api/formulations`, {
         user_id: 'ashwanth_demo',
         formulation_data: formulation_data,
         context: { ...context, custom_instructions, substitutions }
@@ -48,14 +49,14 @@ export default function PlanSummary() {
 
   // Post-save CTA block
   const SaveSuccessBanner = () => (
-    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '8px', textAlign: 'center' }}>
+    <div style={{ background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '8px', textAlign: 'center' }}>
       <div style={{ fontSize: '2rem' }}>✅</div>
       <div>
-        <p style={{ margin: '0 0 4px', fontWeight: '700', color: '#065f46', fontSize: '1.1rem' }}>Plan saved to your library!</p>
-        <p style={{ margin: 0, color: '#15803d', fontSize: '0.9rem' }}>You can now track daily tasks in the Dashboard or view it anytime from My Plans.</p>
+        <p style={{ margin: '0 0 4px', fontWeight: '700', color: '#0f766e', fontSize: '1.1rem' }}>Plan saved to your library!</p>
+        <p style={{ margin: 0, color: '#042f2e', fontSize: '0.9rem' }}>You can now track daily tasks in the Dashboard or view it anytime from My Plans.</p>
       </div>
       <div style={{ display: 'flex', gap: '12px' }}>
-        <button onClick={() => navigate('/dashboard')} style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}>Go to Dashboard →</button>
+        <button onClick={() => navigate('/dashboard')} style={{ background: '#0f766e', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}>Go to Dashboard →</button>
         <button onClick={() => navigate('/my-plans')} style={{ background: 'white', color: '#475569', border: '1px solid #e2e8f0', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontSize: '0.95rem' }}>My Plans</button>
       </div>
     </div>
@@ -69,7 +70,7 @@ export default function PlanSummary() {
         </button>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '8px', background: 'linear-gradient(45deg, #2ecc71, #27ae60)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h1 style={{ fontSize: '2.5rem', marginBottom: '8px', background: 'linear-gradient(45deg, #10b981, #0f766e)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Plan Summary
             </h1>
             {is_mock && (
@@ -78,8 +79,15 @@ export default function PlanSummary() {
               </span>
             )}
             {is_saved && !is_mock && (
-              <span style={{ background: '#ecfdf5', color: '#059669', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px', border: '1px solid #10b981' }}>
-                <Bookmark size={14} style={{ display: 'inline', marginBottom: '-2px', marginRight: '4px' }} /> FROM LIBRARY
+              <span style={{ 
+                background: location.state?.from === '/dashboard' ? '#ecfdf5' : '#f0fdf4', 
+                color: location.state?.from === '/dashboard' ? '#10b981' : '#0f766e', 
+                padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '800', 
+                letterSpacing: '0.5px', border: '1px solid currentColor' 
+              }}>
+                <Bookmark size={14} style={{ display: 'inline', marginBottom: '-2px', marginRight: '4px' }} />
+                {location.state?.from === '/dashboard' ? 'ACTIVE REGIMEN' : 
+                 location.state?.from === '/farms' ? 'PORTFOLIO PLAN' : 'LIBRARY RECORD'}
               </span>
             )}
           </div>
@@ -89,7 +97,10 @@ export default function PlanSummary() {
 
       {is_mock && (
         <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '16px', borderRadius: '12px', marginBottom: '24px', color: '#b91c1c' }}>
-          <strong>Developer Notice:</strong> The Google Gemini API free-tier rate limit was exceeded (429 Error). This dashboard is currently rendering a hardcoded <strong>Mock Fallback</strong> so you can continue testing the frontend layout without crashing.
+          <strong style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', marginBottom: '8px' }}>
+            <AlertTriangle size={20} /> Placeholder Mock Recipe Generated
+          </strong>
+          The AI system is currently experiencing high traffic (Rate Limit Exceeded). This dashboard is rendering a hardcoded <strong>Mock Fallback (Cow Dung & Jaggery)</strong> to allow you to preview the application layout. This is NOT a real algorithmic recommendation for your specific crop.
         </div>
       )}
 
@@ -138,7 +149,7 @@ export default function PlanSummary() {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: ing.note ? '8px' : 0 }}>
                     <strong style={{ color: '#1e293b', fontSize: '1rem' }}>{ing.name}</strong>
-                    <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: '600', whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '60%', textAlign: 'right' }}>
+                    <span style={{ background: '#f0fdf4', color: '#042f2e', padding: '4px 10px', borderRadius: '20px', fontSize: '0.82rem', fontWeight: '600', whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '60%', textAlign: 'right' }}>
                       {ing.quantity}
                     </span>
                   </div>
@@ -171,7 +182,7 @@ export default function PlanSummary() {
 
                   // Find tasks that fall on this specific day
                   const tasksForToday = tasks.filter(t => t.days && t.days.includes(dayNum))
-                    .map((t, taskIndex) => { return { desc: t.description, id: `task_${taskIndex}_day_${dayNum}` } });
+                    .map((t, taskIndex) => ({ step: t.step || t.description, id: `task_${taskIndex}_day_${dayNum}` }));
 
                   return (
                     <div key={`day-${dayNum}`} style={{ display: 'flex', gap: '20px', position: 'relative', zIndex: 1 }}>
@@ -197,8 +208,10 @@ export default function PlanSummary() {
                                 background: isCompleted ? '#f8fafc' : 'transparent',
                                 padding: '8px', borderRadius: '8px'
                               }}>
-                                <CheckCircle2 size={16} color={isCompleted ? '#10b981' : '#cbd5e1'} style={{ marginTop: '2px', flexShrink: 0 }} />
-                                <span>{taskObj.desc}</span>
+                                <CheckCircle2 size={16} color={isCompleted ? '#0f766e' : '#cbd5e1'} style={{ marginTop: '2px', flexShrink: 0 }} />
+                                <span style={{ fontSize: '0.95rem', color: '#334155', lineHeight: '1.5' }}>
+                                  {taskObj.step}
+                                </span>
                               </li>
                             );
                           })}
@@ -212,18 +225,18 @@ export default function PlanSummary() {
               <div style={{ display: 'flex', gap: '20px', position: 'relative', zIndex: 1, marginTop: '16px' }}>
                 <div style={{
                   width: '32px', height: '32px', borderRadius: '50%', background: '#fff',
-                  border: '2px solid #10b981', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '2px solid #0f766e', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0, boxShadow: '0 0 0 4px #fff'
                 }}>
-                  <CheckCircle2 color="#10b981" size={20} />
+                  <CheckCircle2 color="#0f766e" size={20} />
                 </div>
                 <div style={{ paddingTop: '4px', flex: 1 }}>
-                  <div style={{ fontWeight: '600', color: '#10b981', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <div style={{ fontWeight: '600', color: '#0f766e', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Application Phase
                   </div>
                   {formulation_data.application_phase && formulation_data.application_phase.map((appPhase, idx) => (
-                    <div key={idx} style={{ color: '#334155', background: '#ecfdf5', padding: '12px', borderRadius: '8px', border: '1px solid #a7f3d0', marginBottom: '8px' }}>
-                      {appPhase.description}
+                    <div key={idx} style={{ color: '#334155', background: '#f0fdf4', padding: '12px', borderRadius: '8px', border: '1px solid #d1fae5', marginBottom: '8px' }}>
+                      {appPhase.step || appPhase.description || appPhase.desc}
                     </div>
                   ))}
                 </div>
@@ -245,7 +258,7 @@ export default function PlanSummary() {
                 disabled={isSaving}
                 style={{
                   padding: '16px 40px',
-                  background: 'linear-gradient(45deg, #10b981, #059669)',
+                  background: 'linear-gradient(45deg, #0f766e, #0f766e)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '30px',
@@ -269,7 +282,7 @@ export default function PlanSummary() {
                 )}
               </button>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#10b981', fontWeight: 'bold', fontSize: '1.2rem', background: '#ecfdf5', padding: '16px 40px', borderRadius: '30px', border: '1px solid #34d399' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#0f766e', fontWeight: 'bold', fontSize: '1.2rem', background: '#f0fdf4', padding: '16px 40px', borderRadius: '30px', border: '1px solid #10b981' }}>
                 <CheckCircle2 size={24} /> Successfully Saved to Library
               </div>
             )}

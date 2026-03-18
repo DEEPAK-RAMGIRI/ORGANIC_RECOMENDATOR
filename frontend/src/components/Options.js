@@ -39,7 +39,7 @@ export default function Options() {
                 </div>
 
                 <h1 style={{ fontSize: '2.5rem', marginBottom: '12px', color: '#1e293b' }}>
-                    Choose Your <span style={{ color: '#2ecc71' }}>Organic Replacement</span>
+                    Choose Your <span style={{ color: '#10b981' }}>Organic Replacement</span>
                 </h1>
                 <p style={{ fontSize: '1.2rem', color: '#64748b', maxWidth: '600px' }}>
                     We found <strong>{options.length} viable alternatives</strong> to replace {options[0]?.corrected_chemical || context.chemical} for your {context.crop} crop. Select the method that best fits your schedule and resources.
@@ -85,23 +85,23 @@ export default function Options() {
                                 left: '0',
                                 right: '0',
                                 height: '6px',
-                                background: isFast ? 'linear-gradient(90deg, #3b82f6, #60a5fa)' : 'linear-gradient(90deg, #10b981, #34d399)'
+                                background: isFast ? 'linear-gradient(90deg, #3b82f6, #60a5fa)' : 'linear-gradient(90deg, #0f766e, #10b981)'
                             }}></div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                 <div style={{
-                                    background: isFast ? '#eff6ff' : '#ecfdf5',
-                                    color: isFast ? '#2563eb' : '#059669',
+                                    background: isFast ? '#eff6ff' : '#f0fdf4',
+                                    color: isFast ? '#2563eb' : '#0f766e',
                                     padding: '6px 14px',
                                     borderRadius: '20px',
                                     fontSize: '0.85rem',
                                     fontWeight: '700',
                                     letterSpacing: '0.5px',
                                     textTransform: 'uppercase'
-                                }}>
+                                }} className={isFast ? "pill-sky" : "pill-green"}>
                                     {isFast ? 'Fast Acting' : 'Long Yield'}
                                 </div>
-                                <Leaf size={24} color={isFast ? '#3b82f6' : '#10b981'} opacity={0.5} />
+                                <Leaf size={24} color={isFast ? '#3b82f6' : '#0f766e'} opacity={0.5} />
                             </div>
 
                             <h2 style={{ fontSize: '1.8rem', color: '#0f172a', margin: '0 0 12px 0', lineHeight: '1.2' }}>{opt.alternative}</h2>

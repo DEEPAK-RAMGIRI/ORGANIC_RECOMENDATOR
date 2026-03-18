@@ -161,6 +161,49 @@ def get_farm_by_id(farm_id):
 def home():
     return jsonify({"status": "Backend Running"})
 
+@app.route("/api/impact", methods=["GET"])
+def get_impact_data():
+    try:
+        impact_file = os.path.join(os.path.dirname(__file__), "impact_data.json")
+        
+        if os.path.exists(impact_file):
+             with open(impact_file, "r") as f:
+                 data = json.load(f)
+             return jsonify({"status": "success", "data": data})
+        else:
+             return jsonify({"status": "error", "message": "Impact data not yet generated."}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/mappings", methods=["GET"])
+def get_mappings():
+    try:
+        mappings_file = os.path.join(os.path.dirname(__file__), "mappings.json")
+        
+        if os.path.exists(mappings_file):
+             with open(mappings_file, "r") as f:
+                 data = json.load(f)
+             return jsonify({"status": "success", "data": data})
+        else:
+             return jsonify({"status": "error", "message": "Mappings data not found."}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/roi_meta", methods=["GET"])
+def get_roi_meta():
+    try:
+        roi_file = os.path.join(os.path.dirname(__file__), "reference_costs.json")
+        if os.path.exists(roi_file):
+             with open(roi_file, "r") as f:
+                 data = json.load(f)
+             return jsonify({"status": "success", "data": data})
+        else:
+             return jsonify({"status": "error", "message": "ROI metadata not found."}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+
 @app.route("/recommend", methods=["POST"])
 @limiter.limit("10 per minute")
 def recommend():
@@ -284,6 +327,88 @@ def recommend():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/recommend_by_symptom", methods=["POST"])
+@app.route("/api/recommend_by_symptom", methods=["POST"])
+@limiter.limit("10 per minute")
+def recommend_by_symptom():
+    try:
+        req = request.get_json()
+        symptom = req.get("symptom", "").strip()
+        crop = req.get("crop", "").strip()
+        acres = req.get("acres", 1)
+        user_lang = req.get("language", "English")
+
+        if not symptom:
+            return jsonify({"status": "error", "message": "Missing symptom or pest description."}), 400
+
+        tfidf_model, vector_data, dataframe = get_models()
+
+        query = f"{symptom} {crop}".lower()
+        query_vec = tfidf_model.transform([query])
+        similarities = cosine_similarity(query_vec, vector_data)[0]
+
+        best_score = similarities.max()
+
+        if best_score <= 0.15: 
+            return jsonify({
+                "status": "error",
+                "message": f"No reliable organic alternative found for '{symptom}'."
+            }), 400
+
+        options = []
+        seen_alts = set()
+        
+        indices_to_check = similarities.argsort()[::-1][:5]
+        scores = [similarities[idx] for idx in indices_to_check]
+        
+        for i, idx in enumerate(indices_to_check):
+            score = scores[i]
+            res = dataframe.iloc[idx]
+            alt_name = res["organic_alternative"].strip()
+            
+            if alt_name.lower() in seen_alts:
+                continue
+                
+            seen_alts.add(alt_name.lower())
+            
+            alt_lower = alt_name.lower()
+            prep_time = "Refer to product label"
+            try:
+                cached = db["prep_times"].find_one({"alternative_key": alt_lower})
+                if cached and cached.get("prep_time"):
+                    prep_time = cached["prep_time"]
+            except Exception as pt_err:
+                print(f"[prep_time] DB lookup failed for '{alt_name}': {pt_err}")
+
+            options.append({
+                "id": str(idx),
+                "alternative": alt_name,
+                "dosage": res["dosage"],
+                "application_time": res["application_time"],
+                "safety_note": res["safety_note"],
+                "confidence": min(1.0, round(float(score), 4)),
+                "prep_time": prep_time,
+                "problem_target": res.get("problem_or_pest", symptom),
+                "corrected_chemical": str(res.get("chemical_name", ""))
+            })
+            
+            if len(options) >= 3:
+                break
+
+        if not options:
+             return jsonify({
+                "status": "error",
+                "message": f"No reliable organic alternative found."
+            }), 400
+
+        return jsonify({
+            "status": "success",
+            "options": options
+        })
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/formulate", methods=["POST"])
 @app.route("/api/formulate", methods=["POST"])
 @limiter.limit("10 per minute")
@@ -328,7 +453,8 @@ def formulate():
         TASK:
         1. Recalculate the exact weights/volumes of the required ingredients for {acres} acres using Indian units (kg, quintal, MT, litres).
         2. Specifically note if the substitutions change the required fermentation/preparation time or effectiveness.
-        3. Break the preparation into specific actionable tasks. Assign each task an array of days it must be performed on. (Day 1 is the first day of prep).
+        3. Identify 2–3 'preparation_tasks'. For each, provide a clear 'step' and an array of 'days' it must be performed (e.g. [1, 3] for Day 1 and 3). Use 'step' NOT 'description'.
+        4. Provide 1 'application_phase' item with a 'step' for the final organic application.
         
         Output MUST be pure JSON with no markdown formatting or backticks. Schema:
         {{
@@ -373,11 +499,12 @@ def formulate():
                     {"name": "Jaggery (or substitute)", "quantity": f"{1 * float(acres)} kg", "note": "Fermentation starter"}
                 ],
                 "preparation_tasks": [
-                    {"description": "Mix all ingredients in a barrel with 200L of water.", "days": [1]},
-                    {"description": "Stir clockwise twice a day. Keep in shade.", "days": [2, 3, 4]}
+                    {"step": "Mix all ingredients in a barrel with 200L of water.", "days": [1]},
+                    {"step": "Gather 5kg Neem leaves", "days": [1, 2]},
+                    {"step": "Stir clockwise twice a day. Keep in shade.", "days": [2, 3, 4]}
                 ],
                 "application_phase": [
-                    {"description": f"Dilute with water and spray evenly across {acres} acres of {crop}."}
+                    {"step": f"Dilute with water and spray evenly across {acres} acres of {crop}."}
                 ],
                 "warnings": [
                     "If using Buffalo Dung instead of Cow Dung, fermentation may take 1 extra day.",
@@ -500,6 +627,7 @@ def save_formulation():
             "formulation_data": formulation_data,
             "context": context,
             "created_at": datetime.now(),
+            "updated_at": datetime.now(),
             "start_date": datetime.now().isoformat(),
             "completed_task_ids": [],
             "status": "PREPARING"
@@ -516,24 +644,38 @@ def save_formulation():
 
 @app.route("/api/tasks/sync", methods=["PUT"])
 def sync_tasks():
-    try:
-        req = request.get_json()
-        plan_id = req.get("plan_id")
-        task_id = req.get("task_id") # e.g., 'task_0_day_1'
-        is_completed = req.get("is_completed", True)
+    req = request.get_json()
+    plan_id = req.get("plan_id")
+    task_id = req.get("task_id") # e.g., 'task_0_day_1'
+    is_completed = req.get("is_completed", True)
+    
+    if not plan_id or not task_id:
+        return jsonify({"status": "error", "message": "Missing plan_id or task_id"}), 400
         
-        if not plan_id or not task_id:
-            return jsonify({"status": "error", "message": "Missing plan_id or task_id"}), 400
-            
-        if is_completed:
+    # Robust ID Validation
+    if not re.match(r'^[0-9a-fA-F]{24}$', str(plan_id)):
+         # If it's not a hex string, it might be an object that already has $oid
+         if isinstance(plan_id, dict) and "$oid" in plan_id:
+             plan_id = plan_id["$oid"]
+         else:
+             return jsonify({"status": "error", "message": f"Invalid plan_id format: {plan_id}"}), 400
 
+    try:
+        if is_completed:
             # If this is the very first task being completed, officially start the timer
             plan_doc = db.formulations.find_one({"_id": ObjectId(plan_id)})
+            if not plan_doc:
+                 return jsonify({"status": "error", "message": "Plan not found"}), 404
+            
             current_completed = plan_doc.get("completed_task_ids", [])
             
-            update_fields = {"$addToSet": {"completed_task_ids": task_id}}
+            update_fields = {
+                "$addToSet": {"completed_task_ids": task_id},
+                "$set": {"updated_at": datetime.now()}
+            }
+            
             if len(current_completed) == 0:
-                update_fields["$set"] = {"start_date": datetime.now().isoformat()}
+                update_fields["$set"]["start_date"] = datetime.now().isoformat()
 
             db.formulations.update_one(
                 {"_id": ObjectId(plan_id)},
@@ -542,12 +684,12 @@ def sync_tasks():
         else:
             db.formulations.update_one(
                 {"_id": ObjectId(plan_id)},
-                {"$pull": {"completed_task_ids": task_id}}
+                {
+                    "$pull": {"completed_task_ids": task_id},
+                    "$set": {"updated_at": datetime.now()}
+                }
             )
-            
-        # Optional: We could run a check here to upgrade status to READY_TO_APPLY or COMPLETED
-        # but for now we'll just track the array.
-            
+        
         return jsonify({"status": "success", "message": "Task synced successfully!"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -557,6 +699,52 @@ def get_formulations():
     try:
         user_id = request.args.get("user_id", "ashwanth_demo")
         plans = list(db.formulations.find({"user_id": user_id}).sort("created_at", -1))
+        
+        # Categorize for production UI
+        now = datetime.now()
+        for p in plans:
+            # Check if all tasks are completed AND if time has passed
+            tasks = p.get("formulation_data", {}).get("preparation_tasks", [])
+            total_unique_tasks = len(tasks)
+            completed_tasks = len(p.get("completed_task_ids", []))
+            
+            # Find max day in schedule
+            max_day = 1
+            for t in tasks:
+                days = t.get("days", [1])
+                if days:
+                    max_day = max(max_day, max(days))
+            
+            # Calculate current day relative to start
+            date_str = p.get("start_date") or p.get("created_at")
+            current_day = 1
+            if date_str:
+                if isinstance(date_str, dict) and "$date" in date_str:
+                    date_val = datetime.fromisoformat(date_str["$oid"]) # Wait, it might be $date
+                elif isinstance(date_str, datetime):
+                    date_val = date_str
+                else:
+                    try:
+                        date_val = datetime.fromisoformat(str(date_str).replace('Z', '+00:00'))
+                    except:
+                        date_val = now
+                
+                # Use start-of-day math for consistent day boundaries
+                date_start = date_val.replace(hour=0, minute=0, second=0, microsecond=0)
+                now_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                delta = now_start - date_start
+                current_day = delta.days + 1
+
+            # A plan is Historical ONLY if:
+            # 1. It is explicitly marked COMPLETED
+            # 2. It's past the last day of tasks
+            is_over = current_day > max_day
+            
+            if p.get("status") == "COMPLETED" or is_over:
+                p["diff_category"] = "Historical"
+            else:
+                p["diff_category"] = "Active"
+                
         return bson_dumps({"status": "success", "plans": plans}), 200, {'Content-Type': 'application/json'}
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
