@@ -56,7 +56,7 @@ CORS(app, resources={
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
-    default_limits=["20 per minute"]
+    default_limits=["50 per minute"]
 )
 
 # ── BSON Helper ─────────────────────────────────────────────────────────────
@@ -112,14 +112,41 @@ def get_user_id(default="ashwanth_demo"):
 
     return default
 
+
+# ── Lightweight in-memory TTL cache ─────────────────────────────────────────
+# Eliminates 2100ms+ Atlas round-trips on every page switch.
+# Cache entries expire after TTL_SECONDS. Write ops invalidate cache.
+import time as _time
+_cache = {}
+_TTL = 30  # seconds
+
+def _cache_get(key):
+    entry = _cache.get(key)
+    if entry and (_time.time() - entry['ts']) < _TTL:
+        return entry['data']
+    return None
+
+def _cache_set(key, data):
+    _cache[key] = {'data': data, 'ts': _time.time()}
+
+def _cache_del(key):
+    _cache.pop(key, None)
+
 @app.route("/api/farms", methods=["GET"])
 def get_farms():
     try:
         user_id = get_user_id()
+        cache_key = f"farms:{user_id}"
+        cached = _cache_get(cache_key)
+        if cached:
+            return cached, 200, {'Content-Type': 'application/json'}
         farms = list(db.farms.find({"user_id": user_id}))
-        return bson_dumps({"status": "success", "farms": farms}), 200, {'Content-Type': 'application/json'}
+        result = bson_dumps({"status": "success", "farms": farms})
+        _cache_set(cache_key, result)
+        return result, 200, {'Content-Type': 'application/json'}
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 @app.route("/api/farms", methods=["POST"])
 def save_farm():
@@ -143,6 +170,7 @@ def save_farm():
         }
         
         result = db.farms.insert_one(new_farm)
+        _cache_del(f"farms:{user_id}")  # Invalidate cache on write
         return jsonify({
             "status": "success", 
             "message": "Farm saved successfully",
@@ -156,7 +184,7 @@ def delete_farm(farm_id):
     try:
         user_id = get_user_id()
         result = db.farms.delete_one({"_id": ObjectId(farm_id), "user_id": user_id})
-        
+        _cache_del(f"farms:{user_id}")  # Invalidate cache on delete
         if result.deleted_count == 1:
             return jsonify({"status": "success", "message": "Farm deleted."}), 200
         else:

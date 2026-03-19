@@ -8,7 +8,7 @@ export default function Sidebar() {
 
     const navItems = [
         { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-        { name: 'Get Recommendation', path: '/triage', icon: <Stethoscope size={20} /> },
+        { name: 'Get Recommendation', path: '/triage', icon: <Stethoscope size={20} />, childPaths: ['/lab', '/plan-summary'] },
         { name: 'My Plans', path: '/my-plans', icon: <BookOpen size={20} /> },
         { name: 'Farm Portfolio', path: '/farms', icon: <Tractor size={20} /> },
         { name: 'Savings Analytics', path: '/analytics', icon: <TrendingUp size={20} /> },
@@ -29,6 +29,7 @@ export default function Sidebar() {
                         to={item.path}
                         className={`nav-item ${
                             location.pathname === item.path ||
+                            (item.childPaths || []).includes(location.pathname) ||
                             (item.path !== '/dashboard' && !['/farms', '/my-plans'].includes(item.path) && location.pathname.startsWith(item.path)) ||
                             (location.pathname === '/plan-summary' && location.state?.from === item.path) ||
                             (location.pathname.startsWith('/farms/') && item.path === '/farms')
