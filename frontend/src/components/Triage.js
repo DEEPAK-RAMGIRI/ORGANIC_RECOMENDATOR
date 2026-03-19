@@ -187,61 +187,58 @@ export default function Triage() {
 
                 {/* MODAL OVERLAY */}
                 {showModal && (
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.95)', zIndex: 10, borderRadius: '16px', padding: '32px', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h2 style={{ margin: 0, color: '#1e293b' }}>Add New Farm Plot</h2>
-                            <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X /></button>
-                        </div>
+                    <div className="modal-overlay">
+                        <div className="modal-panel">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h2 style={{ margin: 0, color: '#111827' }}>Add New Farm Plot</h2>
+                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><X /></button>
+                            </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <datalist id="existingFarms">
-                                {[...new Set(farms.map(f => f.name))].map(name => (
-                                    <option key={name} value={name} />
-                                ))}
-                            </datalist>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                <datalist id="existingFarms">
+                                    {[...new Set(farms.map(f => f.name))].map(name => (
+                                        <option key={name} value={name} />
+                                    ))}
+                                </datalist>
 
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Farm Name</label>
-                                <input type="text" list="existingFarms" className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.name} onChange={e => setNewFarm({ ...newFarm, name: e.target.value })} placeholder="Select existing or type new farm..." />
+                                <div>
+                                    <label className="input-label">Farm Name</label>
+                                    <input type="text" list="existingFarms" className="modern-input" style={{ width: '100%' }} value={newFarm.name} onChange={e => setNewFarm({ ...newFarm, name: e.target.value })} placeholder="Select existing or type new farm..." />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                                    <div>
+                                        <label className="input-label">Plot Identifier</label>
+                                        <input type="text" className="modern-input" style={{ width: '100%' }} value={newFarm.plot} onChange={e => setNewFarm({ ...newFarm, plot: e.target.value })} placeholder="e.g., North Field" />
+                                    </div>
+                                    <div>
+                                        <label className="input-label">Target Crop</label>
+                                        <select className="modern-input" style={{ width: '100%' }} value={newFarm.crop} onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })}>
+                                            <option value="">Select Crop...</option>
+                                            {mappings && mappings.crops.map(c => (
+                                                <option key={c} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                                    <div>
+                                        <label className="input-label">Acres</label>
+                                        <input type="number" min="0.1" step="0.1" className="modern-input" style={{ width: '100%' }} value={newFarm.acres} onChange={e => setNewFarm({ ...newFarm, acres: e.target.value })} />
+                                    </div>
+                                    <div>
+                                        <label className="input-label">Soil Type</label>
+                                        <select className="modern-input" style={{ width: '100%' }} value={newFarm.soil_type} onChange={e => setNewFarm({ ...newFarm, soil_type: e.target.value })}>
+                                            <option value="Red">Red Soil</option>
+                                            <option value="Black">Black Soil</option>
+                                            <option value="Alluvial">Alluvial Soil</option>
+                                            <option value="Loamy">Loamy Soil</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button className="primary-btn mt-6" onClick={handleCreateFarm} disabled={savingFarm}>
+                                    {savingFarm ? 'Saving to Database...' : 'Save New Plot'}
+                                </button>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Plot Identifier</label>
-                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.plot} onChange={e => setNewFarm({ ...newFarm, plot: e.target.value })} placeholder="e.g., North Field" />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Target Crop</label>
-                                    <select 
-                                        className="modern-input" 
-                                        style={{ width: '100%', boxSizing: 'border-box', cursor: 'pointer' }} 
-                                        value={newFarm.crop} 
-                                        onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })}
-                                    >
-                                        <option value="">Select Crop...</option>
-                                        {mappings && mappings.crops.map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Acres</label>
-                                    <input type="number" min="0.1" step="0.1" className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.acres} onChange={e => setNewFarm({ ...newFarm, acres: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Soil Type</label>
-                                    <select className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.soil_type} onChange={e => setNewFarm({ ...newFarm, soil_type: e.target.value })}>
-                                        <option value="Red">Red Soil</option>
-                                        <option value="Black">Black Soil</option>
-                                        <option value="Alluvial">Alluvial Soil</option>
-                                        <option value="Loamy">Loamy Soil</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button className="primary-btn mt-6" onClick={handleCreateFarm} disabled={savingFarm}>
-                                {savingFarm ? 'Saving to Database...' : 'Save New Plot'}
-                            </button>
                         </div>
                     </div>
                 )}

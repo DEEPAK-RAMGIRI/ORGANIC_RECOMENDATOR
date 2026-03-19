@@ -6,170 +6,60 @@ export default function LandingPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Trigger entry animation
         setTimeout(() => setMounted(true), 50);
     }, []);
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            background: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 5vw',
-            fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-            overflow: 'hidden'
-        }}>
-            {/* Background blobs */}
-            <div style={{ position: 'absolute', top: '-120px', right: '-120px', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: '-80px', left: '-80px', width: '380px', height: '380px', background: 'radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        <div className="flow-page animate-fade-in" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', background: 'linear-gradient(180deg, #f8fafc 0%, #eff8f4 100%)' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '1100px', padding: '1rem', borderRadius: '24px', background: 'rgba(255,255,255,0.85)', border: '1px solid #e5e7eb', boxShadow: '0 18px 35px rgba(15, 23, 42, 0.08)' }}>
+                <div style={{ position: 'absolute', top: '-90px', right: '-100px', width: '350px', height: '350px', background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: '-90px', left: '-80px', width: '320px', height: '320px', background: 'radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
 
-            <div style={{
-                maxWidth: '1100px',
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '40px',
-                opacity: mounted ? 1 : 0,
-                transform: mounted ? 'translateY(0)' : 'translateY(24px)',
-                transition: 'opacity 0.7s ease, transform 0.7s ease'
-            }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', alignItems: 'center' }}>
+                    <div>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', padding: '6px 14px', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 700, marginBottom: '18px' }}>
+                            🌱 AI-Powered Organic Farming
+                        </div>
+                        <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3.4rem)', lineHeight: 1.1, margin: '0 0 14px', color: '#111827' }}>
+                            Organic <span style={{ color: '#10b981' }}>Reccomendator</span>
+                        </h1>
+                        <p style={{ margin: 0, color: '#475569', fontSize: '1rem', lineHeight: 1.65, maxWidth: '520px' }}>
+                            Turn chemical dependency into nutrient-rich organic alternatives with AI-powered planning, progress tracking, and real farm insights.
+                        </p>
 
-                {/* Left: Text content */}
-                <div style={{ flex: 1, maxWidth: '560px' }}>
-                    {/* Badge */}
-                    <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '8px',
-                        background: '#ecfdf5', border: '1px solid #a7f3d0',
-                        color: '#065f46', padding: '6px 16px', borderRadius: '20px',
-                        fontSize: '0.82rem', fontWeight: '600', marginBottom: '28px',
-                        letterSpacing: '0.3px'
-                    }}>
-                        🌱 AI-Powered Organic Farming
-                    </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '18px' }}>
+                            <button className="primary-btn" onClick={() => navigate('/triage')} style={{ padding: '11px 18px' }}>
+                                Start Recommendation
+                            </button>
+                            <button className="secondary-btn" onClick={() => navigate('/dashboard')} style={{ padding: '11px 18px' }}>
+                                Go to Dashboard
+                            </button>
+                        </div>
 
-                    <h1 style={{ margin: 0, lineHeight: 1.1 }}>
-                        <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 5vw, 4.2rem)', fontWeight: '900', color: '#0f172a', letterSpacing: '-1px' }}>
-                            Organic
-                        </span>
-                        <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 5vw, 4.2rem)', fontWeight: '900', color: '#10b981', letterSpacing: '-1px' }}>
-                            Reccomendator
-                        </span>
-                    </h1>
-
-                    <p style={{
-                        marginTop: '20px',
-                        fontSize: '1.15rem',
-                        color: '#475569',
-                        lineHeight: '1.75',
-                        maxWidth: '440px'
-                    }}>
-                        We recommend organic alternatives over chemicals to preserve soil health and your future.
-                    </p>
-
-                    {/* Stats row */}
-                    <div style={{ display: 'flex', gap: '28px', marginTop: '32px', marginBottom: '42px' }}>
-                        {[
-                            { num: '40+', label: 'Chemicals covered' },
-                            { num: '7', label: 'Crops supported' },
-                            { num: 'AI', label: 'Powered plans' },
-                        ].map(stat => (
-                            <div key={stat.label}>
-                                <div style={{ fontSize: '1.6rem', fontWeight: '800', color: '#10b981' }}>{stat.num}</div>
-                                <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+                        <div style={{ marginTop: '1.8rem', display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' }}>
+                            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '10px' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#10b981' }}>40+</div>
+                                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Chemicals covered</div>
                             </div>
-                        ))}
+                            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '10px' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#10b981' }}>7</div>
+                                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Crops supported</div>
+                            </div>
+                            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '10px' }}>
+                                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#10b981' }}>AI</div>
+                                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Personalized plans</div>
+                            </div>
+                        </div>
                     </div>
-
-                    <button
-                        onClick={() => navigate('/dashboard')}
-                        style={{
-                            background: '#0f172a',
-                            color: '#fff',
-                            border: 'none',
-                            padding: '16px 40px',
-                            borderRadius: '14px',
-                            fontSize: '1rem',
-                            fontWeight: '700',
-                            cursor: 'pointer',
-                            letterSpacing: '0.5px',
-                            transition: 'all 0.2s ease',
-                            boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(16,185,129,0.35)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.2)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                    >
-                        LET'S GO
-                        <span style={{ fontSize: '1.1rem' }}>→</span>
-                    </button>
-                </div>
-
-                {/* Right: Image */}
-                <div style={{ flex: '0 0 auto', position: 'relative' }}>
-                    {/* Decorative ring */}
-                    <div style={{
-                        width: '380px',
-                        height: '380px',
-                        borderRadius: '50%',
-                        border: '3px solid #d1fae5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative'
-                    }}>
-                        <div style={{
-                            width: '340px',
-                            height: '340px',
-                            borderRadius: '50%',
-                            overflow: 'hidden',
-                            boxShadow: '0 20px 60px rgba(16,185,129, 0.18)'
-                        }}>
-                            <img
-                                src="/main.jpg"
-                                alt="Organic farming — hands holding soil with a seedling"
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                onError={e => { e.target.style.background = 'linear-gradient(135deg, #d1fae5, #a7f3d0)'; e.target.removeAttribute('src'); }}
-                            />
-                        </div>
-
-                        {/* Floating label top-right */}
-                        <div style={{
-                            position: 'absolute', top: '28px', right: '-12px',
-                            background: '#fff', border: '1px solid #e2e8f0',
-                            borderRadius: '12px', padding: '10px 16px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.07)',
-                            fontSize: '0.85rem', fontWeight: '600', color: '#0f172a',
-                            display: 'flex', alignItems: 'center', gap: '6px'
-                        }}>
-                            🧪 Gemini AI
-                        </div>
-
-                        {/* Floating label bottom-left */}
-                        <div style={{
-                            position: 'absolute', bottom: '44px', left: '-20px',
-                            background: '#fff', border: '1px solid #e2e8f0',
-                            borderRadius: '12px', padding: '10px 16px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.07)',
-                            fontSize: '0.85rem', fontWeight: '600', color: '#0f172a',
-                            display: 'flex', alignItems: 'center', gap: '6px'
-                        }}>
-                            🌾 Indian Farming
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ width: '100%', maxWidth: '360px', borderRadius: '18px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 10px 24px rgba(0,0,0,0.12)' }}>
+                            <img src="/main.jpg" alt="Organic farming soil and plant" style={{ width: '100%', height: '100%', minHeight: '280px', objectFit: 'cover' }} onError={e => { e.target.style.background = 'linear-gradient(135deg, #d1fae5, #a7f3d0)'; e.target.removeAttribute('src'); }} />
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Footer strip */}
-            <div style={{
-                position: 'absolute', bottom: '24px', left: 0, right: 0,
-                textAlign: 'center', fontSize: '0.78rem', color: '#cbd5e1', fontWeight: '500'
-            }}>
-                B.Tech Final Year Project — Organic Buddy · 2025–26
+                <div style={{ marginTop: '1.5rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
+                    B.Tech Final Year Project — Organic Buddy · 2025–26
+                </div>
             </div>
         </div>
     );

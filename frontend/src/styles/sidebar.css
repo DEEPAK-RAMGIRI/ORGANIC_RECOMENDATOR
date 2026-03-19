@@ -66,5 +66,21 @@
 .main-content-area {
   margin-left: 260px; /* offset for fixed sidebar */
   flex: 1;
-  padding: 40px;
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #f6f9ff 100%);
 }
+
+@media (max-width: 1000px) {
+  .global-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-right: none;
+  }
+  .main-content-area {
+    margin-left: 0;
+    padding: 20px;
+  }
+}
+
