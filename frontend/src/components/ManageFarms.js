@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, PlusCircle, Sprout, Edit3, Trash2, CalendarClock, Beaker, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import axios from 'axios';
 import '../styles/flow.css';
 
 export default function ManageFarms() {
     const navigate = useNavigate();
     const [farms, setFarms] = useState([]);
+    const [mappings, setMappings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -22,11 +24,12 @@ export default function ManageFarms() {
         setLoading(true);
         try {
             // Fetch farms for the user
-            const farmsRes = await axios.get(`${API_BASE_URL}/api/farms?user_id=ashwanth_demo`);
+            const userId = getCurrentUserId();
+            const farmsRes = await axios.get(`${API_BASE_URL}/api/farms?user_id=${encodeURIComponent(userId)}`);
             const userFarms = farmsRes.data.farms || [];
 
             // Fetch formulation history for the user
-            const plansRes = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
+            const plansRes = await axios.get(`${API_BASE_URL}/api/formulations?user_id=${encodeURIComponent(userId)}`);
             const allPlans = plansRes.data.plans || [];
 
             // Tie plans to farms
@@ -58,6 +61,15 @@ export default function ManageFarms() {
 
     useEffect(() => {
         fetchFarmsAndHistory();
+        const fetchMappings = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/mappings`);
+                if (res.data.status === 'success') setMappings(res.data.data);
+            } catch (err) {
+                console.error("Failed to load mappings", err);
+            }
+        };
+        fetchMappings();
     }, []);
 
     const handleCreateFarm = async () => {
@@ -70,7 +82,7 @@ export default function ManageFarms() {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/farms`, {
                 ...newFarm,
-                user_id: 'ashwanth_demo'
+                user_id: getCurrentUserId()
             });
             if (res.data.status === 'success') {
                 setShowModal(false);
@@ -223,7 +235,17 @@ export default function ManageFarms() {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.95rem', color: '#475569', fontWeight: '600' }}>Target Crop</label>
-                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px' }} value={newFarm.crop} onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })} placeholder="e.g., Cotton" />
+                                    <select 
+                                        className="modern-input" 
+                                        style={{ width: '100%', boxSizing: 'border-box', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '14px', cursor: 'pointer' }} 
+                                        value={newFarm.crop} 
+                                        onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })}
+                                    >
+                                        <option value="">Select Crop...</option>
+                                        {mappings && mappings.crops.map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>

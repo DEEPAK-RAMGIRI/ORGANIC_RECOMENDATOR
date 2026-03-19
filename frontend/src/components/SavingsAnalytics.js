@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { History, CheckCircle2, FlaskConical, TrendingUp, Loader2, Target, Calendar } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
 import '../styles/shared.css';
 
@@ -13,7 +14,7 @@ export default function SavingsAnalytics() {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
+                const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=${encodeURIComponent(getCurrentUserId())}`);
                 if (response.data.status === 'success') {
                     setPlans(response.data.plans || []);
                 }

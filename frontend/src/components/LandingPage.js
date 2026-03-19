@@ -130,7 +130,7 @@ export default function LandingPage() {
                             boxShadow: '0 20px 60px rgba(16,185,129, 0.18)'
                         }}>
                             <img
-                                src="https://raw.githubusercontent.com/DEEPAK-RAMGIRI/ORGANIC_RECCOMENDATOR/main/images/main.jpg"
+                                src="/main.jpg"
                                 alt="Organic farming — hands holding soil with a seedling"
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 onError={e => { e.target.style.background = 'linear-gradient(135deg, #d1fae5, #a7f3d0)'; e.target.removeAttribute('src'); }}

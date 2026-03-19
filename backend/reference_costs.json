@@ -46,6 +46,22 @@
       "Maize (Mokka Jonna / Makka / Bhutta / Corn)": {
         "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 2, "apps_per_yr": 2, "cycle": "Seasonal" },
         "Atrataf (Atrazine)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 1, "cycle": "Seasonal" }
+      },
+      "Cotton (Patti / Pratti / Kapas)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 4, "apps_per_yr": 3, "cycle": "Seasonal" },
+        "Mono / Monocrotophos (Purugu mandu)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 4, "cycle": "Seasonal" }
+      },
+      "Groundnut (Palli / Verusenaga / Mungfali / Peanut)": {
+        "DAP (Eruvu / Khad)": { "quantity_per_acre_per_app": 2, "apps_per_yr": 1, "cycle": "Yearly" },
+        "M-45 / Dithane (Mancozeb)": { "quantity_per_acre_per_app": 0.5, "apps_per_yr": 2, "cycle": "Seasonal" }
+      },
+      "Tomato (Tamata) & Onion (Ullipaya / Pyaz)": {
+        "Urea (Eruvu / Khad)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 5, "cycle": "Seasonal" },
+        "Confidor (Imidacloprid)": { "quantity_per_acre_per_app": 0.5, "apps_per_yr": 6, "cycle": "Seasonal" }
+      },
+      "Red Gram (Kandi / Tur / Arhar) & Bengal Gram (Senaga / Chana)": {
+        "DAP (Eruvu / Khad)": { "quantity_per_acre_per_app": 1.5, "apps_per_yr": 1, "cycle": "Yearly" },
+        "Rogor (Dimethoate)": { "quantity_per_acre_per_app": 1, "apps_per_yr": 2, "cycle": "Seasonal" }
       }
     },
     "organic_costs": {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Library, CheckCircle, Clock, ArrowRight, Loader2, Search, Filter, Activity, Sprout, BookOpen, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import axios from 'axios';
 import '../styles/flow.css';
 import '../styles/shared.css';
@@ -15,7 +16,7 @@ export default function MyPlans() {
     useEffect(() => {
         const fetchPlans = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
+                const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=${encodeURIComponent(getCurrentUserId())}`);
                 if (response.data.status === 'success') {
                     setPlans(response.data.plans || []);
                 }

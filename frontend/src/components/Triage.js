@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Search, Loader2, PlusCircle, X } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
 import '../styles/shared.css';
 
 export default function Triage() {
     const navigate = useNavigate();
     const [farms, setFarms] = useState([]);
+    const [mappings, setMappings] = useState(null);
     const [selectedFarmKey, setSelectedFarmKey] = useState('');
     const [chemical, setChemical] = useState('');
 
@@ -25,7 +27,7 @@ export default function Triage() {
     const fetchFarms = async () => {
         setLoadingFarms(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/farms`);
+            const response = await axios.get(`${API_BASE_URL}/api/farms?user_id=${encodeURIComponent(getCurrentUserId())}`);
             const fetchedFarms = response.data.farms || [];
             setFarms(fetchedFarms);
             if (fetchedFarms.length > 0) {
@@ -42,6 +44,15 @@ export default function Triage() {
 
     useEffect(() => {
         fetchFarms();
+        const fetchMappings = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL}/api/mappings`);
+                if (res.data.status === 'success') setMappings(res.data.data);
+            } catch (err) {
+                console.error("Failed to load mappings", err);
+            }
+        };
+        fetchMappings();
     }, []);
 
     const handleCreateFarm = async () => {
@@ -53,7 +64,7 @@ export default function Triage() {
         try {
             const res = await axios.post(`${API_BASE_URL}/api/farms`, {
                 ...newFarm,
-                user_id: 'ashwanth_demo'
+                user_id: getCurrentUserId()
             });
             if (res.data.status === 'success') {
                 setShowModal(false);
@@ -158,11 +169,17 @@ export default function Triage() {
                 <label className="input-label" style={{ marginTop: '24px' }}><Search size={16} /> Chemical to Replace</label>
                 <input
                     type="text"
+                    list="chemList"
                     placeholder="e.g., Urea, DAP, Glyphosate..."
                     value={chemical}
                     onChange={(e) => setChemical(e.target.value)}
                     className="modern-input"
                 />
+                <datalist id="chemList">
+                    {mappings && Object.values(mappings.chemicals_by_problem).flat().map((c, i) => (
+                        <option key={i} value={c} />
+                    ))}
+                </datalist>
 
                 <button className="primary-btn mt-6" onClick={handleNext} disabled={loadingSearch || farms.length === 0}>
                     {loadingSearch ? <><Loader2 size={18} className="spin" style={{ display: 'inline', marginBottom: '-4px' }} /> Searching Database...</> : <>Find Alternatives &rarr;</>}
@@ -194,7 +211,17 @@ export default function Triage() {
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#64748b', fontWeight: '600' }}>Target Crop</label>
-                                    <input type="text" className="modern-input" style={{ width: '100%', boxSizing: 'border-box' }} value={newFarm.crop} onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })} placeholder="e.g., Paddy" />
+                                    <select 
+                                        className="modern-input" 
+                                        style={{ width: '100%', boxSizing: 'border-box', cursor: 'pointer' }} 
+                                        value={newFarm.crop} 
+                                        onChange={e => setNewFarm({ ...newFarm, crop: e.target.value })}
+                                    >
+                                        <option value="">Select Crop...</option>
+                                        {mappings && mappings.crops.map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>

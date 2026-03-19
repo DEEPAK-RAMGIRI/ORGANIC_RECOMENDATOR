@@ -127,21 +127,163 @@
     },
     "Fipronil (Regent)": {
         "chemical_metrics": {
-            "Bird Toxicity": 98,
-            "Cancer Risk": 85,
-            "Microbial Death": 99,
+            "Bird Toxicity": 95,
+            "Cancer Risk": 40,
+            "Microbial Death": 85,
+            "Skin Allergy": 30,
+            "Water Poison": 70
+        },
+        "scientific_profile": {
+            "Chemical Group": "Phenylpyrazole",
+            "Soil Persistence": "4-12 Months (High)",
+            "Toxicity Mechanism": "GABA-gated chloride channel blocker (Practical: Paralyzes Nervous System)"
+        },
+        "famous_diseases": [
+            "Thyroid Disruption",
+            "Liver Hypertrophy",
+            "Neurotoxicity"
+        ],
+        "safe_alternatives": [
+            "Beauveria bassiana",
+            "Metarhizium anisopliae"
+        ]
+    },
+    "Rogor (Dimethoate)": {
+        "chemical_metrics": {
+            "Bird Toxicity": 85,
+            "Cancer Risk": 60,
+            "Microbial Death": 75,
             "Skin Allergy": 45,
+            "Water Poison": 80
+        },
+        "scientific_profile": {
+            "Chemical Group": "Organophosphate",
+            "Soil Persistence": "1-3 Weeks",
+            "Toxicity Mechanism": "Acetylcholinesterase Inhibitor (Practical: Respiratory Paralysis)"
+        },
+        "famous_diseases": [
+            "Organophosphate Poisoning",
+            "Vision Impairment",
+            "Endocrine Disruption"
+        ],
+        "safe_alternatives": [
+            "Brahmastra",
+            "Neem Oil"
+        ]
+    },
+    "M-45 / Dithane (Mancozeb)": {
+        "chemical_metrics": {
+            "Bird Toxicity": 20,
+            "Cancer Risk": 85,
+            "Microbial Death": 60,
+            "Skin Allergy": 70,
+            "Water Poison": 50
+        },
+        "scientific_profile": {
+            "Chemical Group": "Dithiocarbamate",
+            "Soil Persistence": "1-2 Months",
+            "Toxicity Mechanism": "Multi-site activity (Practical: DNA Damage / Thyroid Toxicant)"
+        },
+        "famous_diseases": [
+            "Thyroid Cancer",
+            "Birth Defects",
+            "Skin Irritation"
+        ],
+        "safe_alternatives": [
+            "Sour Buttermilk Spray",
+            "Trichoderma viride"
+        ]
+    },
+    "Bavistin (Carbendazim - Tegulu mandu)": {
+        "chemical_metrics": {
+            "Bird Toxicity": 15,
+            "Cancer Risk": 75,
+            "Microbial Death": 90,
+            "Skin Allergy": 40,
+            "Water Poison": 65
+        },
+        "scientific_profile": {
+            "Chemical Group": "Benzimidazole",
+            "Soil Persistence": "3-12 Months",
+            "Toxicity Mechanism": "Inhibits microtubule assembly (Practical: Reproductive Toxicity)"
+        },
+        "famous_diseases": [
+            "Infertility",
+            "Liver Damage",
+            "Aquatic Poisoning"
+        ],
+        "safe_alternatives": [
+            "Pseudomonas fluorescens",
+            "Jivamrutham"
+        ]
+    },
+    "Tracer (Spinosad)": {
+        "chemical_metrics": {
+            "Bird Toxicity": 10,
+            "Cancer Risk": 5,
+            "Microbial Death": 30,
+            "Skin Allergy": 20,
+            "Water Poison": 45
+        },
+        "scientific_profile": {
+            "Chemical Group": "Spinosyn",
+            "Soil Persistence": "1-2 Weeks",
+            "Toxicity Mechanism": "Nicotinic acetylcholine receptor modulator (Practical: Low Mammalian Risk)"
+        },
+        "famous_diseases": [
+            "Bee Population Decline",
+            "Allergic Reactions"
+        ],
+        "safe_alternatives": [
+            "Neem Oil (10000 ppm)",
+            "Yellow Sticky Traps"
+        ]
+    },
+    "19 19 19 (NPK)": {
+        "chemical_metrics": {
+            "Bird Toxicity": 5,
+            "Cancer Risk": 2,
+            "Microbial Death": 80,
+            "Skin Allergy": 15,
             "Water Poison": 90
         },
         "scientific_profile": {
-            "Chemical Type": "Phenylpyrazole",
-            "Danger": "Mass Bee Mortality",
-            "Soil Poison Time": "Months",
-            "Attack Method": "Brain Overload",
-            "Global Status": "Banned in EU"
+            "Chemical Group": "Synthetic Fertilizer",
+            "Soil Persistence": "Highly Soluble",
+            "Toxicity Mechanism": "Salt accumulation and Eutrophication (Practical: Kills Beneficial Soil Bacteria)"
         },
-        "famous_diseases": ["Thyroid Cancer", "Liver Damage", "Seizures", "Brain Fog", "Loss of Posture"],
-        "safe_alternatives": ["Beauveria bassiana", "Metarhizium anisopliae", "Bird Perches"]
+        "famous_diseases": [
+            "Groundwater Nitrification",
+            "Soil Sterility",
+            "Blue Baby Syndrome"
+        ],
+        "safe_alternatives": [
+            "Wood Ash",
+            "Jeevamrutham"
+        ]
+    },
+    "20 20 20 (NPK)": {
+        "chemical_metrics": {
+            "Bird Toxicity": 5,
+            "Cancer Risk": 2,
+            "Microbial Death": 80,
+            "Skin Allergy": 15,
+            "Water Poison": 90
+        },
+        "scientific_profile": {
+            "Chemical Group": "Synthetic Fertilizer",
+            "Soil Persistence": "Highly Soluble",
+            "Toxicity Mechanism": "Excess Nitrate leaching (Practical: Soil Acidification)"
+        },
+        "famous_diseases": [
+            "Soil Compaction",
+            "Nutrient Imbalance",
+            "Algal Blooms"
+        ],
+        "safe_alternatives": [
+            "Bone Meal",
+            "Vermicompost"
+        ]
     },
     "Gramoxone (Paraquat)": {
         "chemical_metrics": {

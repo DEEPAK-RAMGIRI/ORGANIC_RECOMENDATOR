@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, Clock, CheckCircle2, ShoppingCart, Printer, ArrowRight, Activity, Beaker, ShieldCheck, ChevronRight, Save, Info, ArrowLeft, Bookmark, FlaskConical, ListChecks, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
 
 export default function PlanSummary() {
@@ -33,7 +34,7 @@ export default function PlanSummary() {
     setSaveError('');
     try {
       const response = await axios.post(`${API_BASE_URL}/api/formulations`, {
-        user_id: 'ashwanth_demo',
+        user_id: getCurrentUserId(),
         formulation_data: formulation_data,
         context: { ...context, custom_instructions, substitutions }
       });

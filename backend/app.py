@@ -91,11 +91,31 @@ def sanitize(value: str, max_len: int = 120) -> str:
 def get_structural_sim(str1, str2):
     return SequenceMatcher(None, str1.lower(), str2.lower()).ratio()
 
+# Shared helper to resolve user ID for future auth migration.
+def get_user_id(default="ashwanth_demo"):
+    # 1) Prefer explicit HTTP header (for auth-based future usage)
+    requested_user = request.headers.get("X-User-Id")
+    if requested_user:
+        return requested_user
+
+    # 2) Check query string, fallback to default
+    if request.args.get("user_id"):
+        return request.args.get("user_id")
+
+    # 3) Check JSON body if present
+    try:
+        payload = request.get_json(silent=True)
+        if isinstance(payload, dict) and payload.get("user_id"):
+            return payload.get("user_id")
+    except Exception:
+        pass
+
+    return default
+
 @app.route("/api/farms", methods=["GET"])
 def get_farms():
     try:
-        # In a real app with Auth, we get user_id from token. Hardcoding for MVP.
-        user_id = request.args.get("user_id", "ashwanth_demo")
+        user_id = get_user_id()
         farms = list(db.farms.find({"user_id": user_id}))
         return bson_dumps({"status": "success", "farms": farms}), 200, {'Content-Type': 'application/json'}
     except Exception as e:
@@ -104,8 +124,8 @@ def get_farms():
 @app.route("/api/farms", methods=["POST"])
 def save_farm():
     try:
-        req = request.get_json()
-        user_id = req.get("user_id", "ashwanth_demo")
+        req = request.get_json() or {}
+        user_id = get_user_id()
         farm_name = req.get("name", "New Farm")
         plot_name = req.get("plot", "Plot 1")
         crop = req.get("crop", "Unknown")
@@ -134,7 +154,7 @@ def save_farm():
 @app.route("/api/farms/<farm_id>", methods=["DELETE"])
 def delete_farm(farm_id):
     try:
-        user_id = request.args.get("user_id", "ashwanth_demo")
+        user_id = get_user_id()
         result = db.farms.delete_one({"_id": ObjectId(farm_id), "user_id": user_id})
         
         if result.deleted_count == 1:
@@ -148,7 +168,7 @@ def delete_farm(farm_id):
 def get_farm_by_id(farm_id):
     """Fetch a single farm by ID — used by FarmDetails to avoid loading all farms."""
     try:
-        user_id = request.args.get("user_id", "ashwanth_demo")
+        user_id = get_user_id()
         farm = db.farms.find_one({"_id": ObjectId(farm_id), "user_id": user_id})
         if not farm:
             return jsonify({"status": "error", "message": "Farm not found."}), 404
@@ -614,8 +634,8 @@ def analyze_recipe():
 @app.route("/api/formulations", methods=["POST"])
 def save_formulation():
     try:
-        req = request.get_json()
-        user_id = req.get("user_id", "ashwanth_demo")
+        req = request.get_json() or {}
+        user_id = get_user_id()
         formulation_data = req.get("formulation_data")
         context = req.get("context")
         
@@ -697,7 +717,7 @@ def sync_tasks():
 @app.route("/api/formulations", methods=["GET"])
 def get_formulations():
     try:
-        user_id = request.args.get("user_id", "ashwanth_demo")
+        user_id = get_user_id()
         plans = list(db.formulations.find({"user_id": user_id}).sort("created_at", -1))
         
         # Categorize for production UI

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Calendar, CheckCircle2, Circle, Loader2, Sparkles, AlertCircle, ArrowRight, Leaf, Clock, PartyPopper, Trophy, ExternalLink } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
 import '../styles/shared.css';
 
@@ -15,7 +16,7 @@ export default function DailyDashboard() {
 
     const fetchPlans = useCallback(async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
+            const response = await axios.get(`${API_BASE_URL}/api/formulations?user_id=${encodeURIComponent(getCurrentUserId())}`);
             if (response.data.status === 'success') {
                 const allPlans = response.data.plans || [];
                 

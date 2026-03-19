@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Tractor, MapPin, Sprout, Ruler, Activity, Clock, CheckCircle2, ChevronRight, Loader2, ArrowLeft, History, FlaskConical, Trash2, Calendar, AlertTriangle, Beaker, CalendarClock, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
 
 export default function FarmDetails() {
@@ -18,7 +19,8 @@ export default function FarmDetails() {
         const fetchFarmData = async () => {
             try {
                 // Efficient: fetch single farm by ID directly
-                const farmRes = await axios.get(`${API_BASE_URL}/api/farms/${id}?user_id=ashwanth_demo`);
+                const userId = getCurrentUserId();
+                const farmRes = await axios.get(`${API_BASE_URL}/api/farms/${id}?user_id=${encodeURIComponent(userId)}`);
                 const matchedFarm = farmRes.data.farm;
 
                 if (!matchedFarm) {
@@ -29,7 +31,7 @@ export default function FarmDetails() {
                 setFarm(matchedFarm);
 
                 // Fetch formulations and filter for this farm
-                const plansRes = await axios.get(`${API_BASE_URL}/api/formulations?user_id=ashwanth_demo`);
+                const plansRes = await axios.get(`${API_BASE_URL}/api/formulations?user_id=${encodeURIComponent(userId)}`);
                 const allPlans = plansRes.data.plans || [];
 
                 // Keep only plans bound to this exact farm ID
