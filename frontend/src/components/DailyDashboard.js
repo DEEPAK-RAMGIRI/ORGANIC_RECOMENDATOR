@@ -193,15 +193,19 @@ export default function DailyDashboard() {
                                                 const isSyncing = syncingTasks[`${plan._id?.$oid || plan._id}_${taskId}`];
 
                                                 return (
-                                                    <div 
+                                                    <button
                                                         key={taskId}
+                                                        type="button"
+                                                        aria-pressed={isCompleted}
                                                         onClick={() => !isSyncing && toggleTask(plan._id?.$oid || plan._id, taskId, plan.completed_task_ids || [])}
-                                                        style={{ 
-                                                            display: 'flex', 
-                                                            alignItems: 'flex-start', 
-                                                            gap: '16px', 
-                                                            padding: '18px', 
-                                                            borderRadius: '16px', 
+                                                        style={{
+                                                            width: '100%',
+                                                            textAlign: 'left',
+                                                            display: 'flex',
+                                                            alignItems: 'flex-start',
+                                                            gap: '16px',
+                                                            padding: '18px',
+                                                            borderRadius: '16px',
                                                             background: isCompleted ? '#f0fdfa' : '#ffffff',
                                                             border: isCompleted ? '1px solid #05966930' : '1px solid #e2e8f0',
                                                             cursor: isSyncing ? 'wait' : 'pointer',
@@ -235,7 +239,7 @@ export default function DailyDashboard() {
                                                         }}>
                                                             {task.step || task.description || task.desc}
                                                         </span>
-                                                    </div>
+                                                    </button>
                                                 );
                                             })}
                                         </div>

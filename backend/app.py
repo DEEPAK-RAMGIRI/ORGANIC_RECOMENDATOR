@@ -239,109 +239,109 @@ def recommend():
 
         tfidf_model, vector_data, dataframe = get_models()
 
-        # --- GIBBERISH DETECTION LOGIC ADDED HERE ---
-        chem_vec = tfidf_model.transform([chemical.lower()])
-        chem_similarities = cosine_similarity(chem_vec, vector_data)[0]
-        best_match_idx = chem_similarities.argmax()
-        best_match_name = str(dataframe.iloc[best_match_idx]['chemical_name'])
-        struct_score = get_structural_sim(chemical, best_match_name)
-        
-        # Check if chemical exists exactly in database
-        exists_exactly = any(str(name).lower() == chemical.lower() for name in dataframe['chemical_name'].unique())
+        # Normalize: strip regional suffixes in parens
+        # "Urea (Eruvu / Khad)" -> "urea", "purugu mandu" stays as-is
+        def normalize_chem(name):
+            return re.sub(r'\s*\(.*?\)', '', str(name)).strip().lower()
 
-        # If it doesn't match exactly and the structure is messy (mash), return error
-        if not exists_exactly and struct_score < 0.45:
-             return jsonify({
-                "status": "error",
-                "message": f"'{chemical}' is not recognized. Please check the spelling."
-            }), 400
+        chemical_norm = normalize_chem(chemical)
+        corrected_input = chemical_norm   # may be updated by spell correction below
 
-        # --- HYBRID SEARCH LOGIC ---
-        query = f"{chemical} {crop}".lower()
-        query_vec = tfidf_model.transform([query])
-        similarities = cosine_similarity(query_vec, vector_data)[0]
+        # ── STEP 1: TF-IDF gate + OOV fuzzy spell correction ─────────────────
+        # TF-IDF can only match words it has seen in training. A typo like "ureo"
+        # produces an all-zero vector (OOV) and scores 0.0 everywhere.
+        # Fix: if TF-IDF fails, try fuzzy matching against known chemical names.
+        # "ureo" → fuzzy matches "urea" at 0.88 → correct and retry.
+        # "asdfgh" → best fuzzy match ~0.2 → truly gibberish → reject.
+        raw_vec = tfidf_model.transform([chemical_norm])
+        raw_scores = cosine_similarity(raw_vec, vector_data)[0]
 
-        # 1. Boost Exact Matches: Find exact spelling matches and boost them 
-        has_exact_match = False
-        for i, row in dataframe.iterrows():
-            if chemical.lower() == str(row.get('chemical_name', '')).lower():
-                # Add 1.0 to retain TF-IDF context sorting (so the correct crop bubbles to the top of exact matches)
-                similarities[i] += 1.0 
-                has_exact_match = True
+        if raw_scores.max() < 0.05:
+            # OOV word — attempt fuzzy spell correction against known chemical names
+            unique_names = dataframe['chemical_name'].unique()
+            known_norms = [normalize_chem(n) for n in unique_names]
 
-        best_score = similarities.max()
+            best_fuzzy = 0.0
+            best_corrected = None
+            for known in known_norms:
+                ratio = get_structural_sim(chemical_norm, known)
+                if ratio > best_fuzzy:
+                    best_fuzzy = ratio
+                    best_corrected = known
 
-        if not has_exact_match:
-            # 2. Prevent valid crops from artificially boosting gibberish chemicals
-            chem_vec = tfidf_model.transform([chemical.lower()])
-            if cosine_similarity(chem_vec, vector_data)[0].max() < 0.05:
+            if best_fuzzy >= 0.65 and best_corrected:
+                # Good enough correction — use it silently and continue
+                corrected_input = best_corrected
+                raw_vec = tfidf_model.transform([corrected_input])
+                raw_scores = cosine_similarity(raw_vec, vector_data)[0]
+            else:
+                # Truly gibberish — fuzzy couldn't find anything close
                 return jsonify({
                     "status": "error",
-                    "message": f"'{chemical}' is not recognized in our agronomy database. Please check the spelling."
+                    "message": f"'{chemical}' does not match any chemical, problem, or symptom in our database. Please check the spelling."
                 }), 400
 
-            # Confidence Threshold Check for fuzzy search limit
-            if best_score <= 0.30: 
-                return jsonify({
-                    "status": "error",
-                    "message": f"No reliable organic alternative found for '{chemical}'."
-                }), 400
+        # ── STEP 2: Rich context query for crop-aware ranking ─────────────────
+        # Use corrected_input (may differ from chemical_norm if spell correction fired)
+        context_query = f"{corrected_input} {crop.lower()}"
+        ctx_vec = tfidf_model.transform([context_query])
+        similarities = cosine_similarity(ctx_vec, vector_data)[0]
 
-        options = []
-        seen_alts = set()
-        
-        # Get the top matches
-        indices_to_check = similarities.argsort()[::-1][:5]
-        scores = [similarities[idx] for idx in indices_to_check]
-        
-        for i, idx in enumerate(indices_to_check):
-            score = scores[i]
-            
-            res = dataframe.iloc[idx]
-            alt_name = res["organic_alternative"].strip()
-            
-            # Deduplicate by name
-            if alt_name.lower() in seen_alts:
-                continue
-                
-            seen_alts.add(alt_name.lower())
-            
-            # ── Get prep time from shared MongoDB collection (user-verified) ──
-            alt_lower = alt_name.lower()
-            prep_time = "Refer to product label"  # fallback if not in DB
-            try:
-                cached = db["prep_times"].find_one({"alternative_key": alt_lower})
-                if cached and cached.get("prep_time"):
-                    prep_time = cached["prep_time"]
-            except Exception as pt_err:
-                print(f"[prep_time] DB lookup failed for '{alt_name}': {pt_err}")
+        # ── STEP 3: Boost chemical-name matches ───────────────────────────────
+        # Use corrected_input so 'ureo' (corrected to 'urea') still boosts urea rows
+        unique_names = dataframe['chemical_name'].unique()
+        matched_norms = {
+            normalize_chem(n) for n in unique_names
+            if (normalize_chem(n) == corrected_input
+                or normalize_chem(n).startswith(corrected_input)
+                or corrected_input.startswith(normalize_chem(n)))
+            and len(corrected_input) >= 3
+        }
 
-            
-            options.append({
-                "id": str(idx),
-                "alternative": alt_name,
-                "dosage": res["dosage"],
-                "application_time": res["application_time"],
-                "safety_note": res["safety_note"],
-                "confidence": min(1.0, round(float(score), 4)),
-                "prep_time": prep_time,
-                "problem_target": res.get("problem_or_pest", "general growth"),
-                "corrected_chemical": str(res.get("chemical_name", chemical))
-            })
-            
-            # Only return the top 3 unique options
-            if len(options) >= 3:
-                break
+        has_exact_match = bool(matched_norms)
+        if has_exact_match:
+            for i, row in dataframe.iterrows():
+                if normalize_chem(str(row.get('chemical_name', ''))) in matched_norms:
+                    similarities[i] += 1.0
 
-        if not options:
-             return jsonify({
+        # ── STEP 4: Confidence floor for symptom / fuzzy queries ──────────────
+        if not has_exact_match and similarities.max() <= 0.20:
+            return jsonify({
                 "status": "error",
-                "message": f"No reliable organic alternative found for '{chemical}'. Please check the chemical name or try another."
+                "message": f"Could not find a reliable match for \'{chemical}\'. Try describing the problem (e.g., \'nitrogen deficiency chilli\') or check the chemical name."
             }), 400
+
+        # ── STEP 5: Return the single best result ─────────────────────────────
+        best_idx = int(similarities.argmax())
+        res = dataframe.iloc[best_idx]
+        score = float(similarities[best_idx])
+        alt_name = res["organic_alternative"].strip()
+
+        # Prep time from MongoDB
+        prep_time = "Refer to product label"
+        try:
+            cached = db["prep_times"].find_one({"alternative_key": alt_name.lower()})
+            if cached and cached.get("prep_time"):
+                prep_time = cached["prep_time"]
+        except Exception as pt_err:
+            print(f"[prep_time] DB lookup failed: {pt_err}")
+
+        best_option = {
+            "id": str(best_idx),
+            "alternative": alt_name,
+            "dosage": res.get("quantity", res.get("dosage", "As per label")),
+            "application_time": res.get("application_time", "As per label"),
+            "safety_note": res.get("safety_note", ""),
+            "confidence": min(1.0, round(score, 4)),
+            "prep_time": prep_time,
+            "problem_target": res.get("problem_name", res.get("problem_or_pest", "general crop health")),
+            "corrected_chemical": str(res.get("chemical_name", chemical)),
+            "matched_by": "chemical" if has_exact_match else "symptom"
+        }
 
         return jsonify({
             "status": "success",
-            "options": options
+            "options": [best_option]
         })
 
     except Exception as e:
@@ -403,12 +403,12 @@ def recommend_by_symptom():
             options.append({
                 "id": str(idx),
                 "alternative": alt_name,
-                "dosage": res["dosage"],
-                "application_time": res["application_time"],
-                "safety_note": res["safety_note"],
+                "dosage": res.get("quantity", res.get("dosage", "As per label")),
+                "application_time": res.get("application_time", "As per label"),
+                "safety_note": res.get("safety_note", ""),
                 "confidence": min(1.0, round(float(score), 4)),
                 "prep_time": prep_time,
-                "problem_target": res.get("problem_or_pest", symptom),
+                "problem_target": res.get("problem_name", res.get("problem_or_pest", symptom)),
                 "corrected_chemical": str(res.get("chemical_name", ""))
             })
             

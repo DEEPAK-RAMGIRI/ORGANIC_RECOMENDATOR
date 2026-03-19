@@ -4,7 +4,6 @@ import Sidebar from './components/Sidebar';
 import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './components/LandingPage';
 import Triage from './components/Triage';
-import Options from './components/Options';
 import Lab from './components/Lab';
 import DailyDashboard from './components/DailyDashboard';
 import PlanSummary from './components/PlanSummary';
@@ -38,7 +37,6 @@ function AppLayout() {
           <Routes>
             <Route path="/dashboard" element={<DailyDashboard />} />
             <Route path="/triage" element={<Triage />} />
-            <Route path="/options" element={<Options />} />
             <Route path="/lab" element={<Lab />} />
             <Route path="/plan-summary" element={<PlanSummary />} />
             <Route path="/my-plans" element={<MyPlans />} />

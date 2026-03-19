@@ -182,8 +182,10 @@ export default function PlanSummary() {
                 return sortedDays.map((dayNum, idx) => {
 
                   // Find tasks that fall on this specific day
-                  const tasksForToday = tasks.filter(t => t.days && t.days.includes(dayNum))
-                    .map((t, taskIndex) => ({ step: t.step || t.description, id: `task_${taskIndex}_day_${dayNum}` }));
+                  const tasksForToday = tasks
+                    .map((t, taskIndex) => ({ ...t, taskIndex }))
+                    .filter(t => t.days && t.days.includes(dayNum))
+                    .map((t) => ({ step: t.step || t.description, id: `task_${t.taskIndex}_day_${dayNum}` }));
 
                   return (
                     <div key={`day-${dayNum}`} style={{ display: 'flex', gap: '20px', position: 'relative', zIndex: 1 }}>

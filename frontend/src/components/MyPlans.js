@@ -131,6 +131,7 @@ function PlanDetailCard({ plan, isActive }) {
     const date = new Date(plan.created_at?.$date || plan.created_at).toLocaleDateString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric'
     });
+    const replacedChemical = plan.context?.chemical_replaced || plan.context?.corrected_chemical || plan.context?.chemical || 'Unknown chemical';
 
     const openPlan = () => {
         navigate('/plan-summary', {
@@ -179,7 +180,7 @@ function PlanDetailCard({ plan, isActive }) {
             </h3>
 
             <div style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '24px' }}>
-                Transitioning <strong>{plan.context?.acres} Acres</strong> of {plan.context?.crop} from {plan.context?.chemical}.
+                Transitioning <strong>{plan.context?.acres} Acres</strong> of {plan.context?.crop} from {replacedChemical}.
             </div>
 
             <div style={{ marginTop: 'auto' }}>

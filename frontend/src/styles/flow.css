@@ -211,6 +211,30 @@
     filter: brightness(1.05);
 }
 
+.hero-cta {
+    background: #0f172a;
+    color: #fff;
+    border: none;
+    padding: 14px 34px;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.2);
+    transition: all 0.2s ease;
+}
+.hero-cta:hover,
+.hero-cta:focus-visible {
+    background: #10b981;
+    outline: none;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+    transform: translateY(-1px);
+}
+
 .secondary-btn {
     background: #f8fafc;
     color: #1f2937;

@@ -87,9 +87,10 @@ export default function Lab() {
         setError('');
 
         try {
+            const normalizedChemical = selectedOption.corrected_chemical || context.corrected_chemical || context.chemical;
             const response = await axios.post(`${API_BASE_URL}/api/formulate`, {
                 alternative: selectedOption.alternative,
-                chemical_replaced: selectedOption.corrected_chemical || context.chemical,
+                chemical_replaced: normalizedChemical,
                 crop: context.crop,
                 acres: context.acres,
                 substitutions: substitutions,
@@ -103,7 +104,13 @@ export default function Lab() {
                         formulation_data: response.data.formulation_data,
                         substitutions: substitutions,
                         custom_instructions: customConstraints,
-                        context: { ...context, ...response.data.context },
+                        context: {
+                            ...context,
+                            ...response.data.context,
+                            alternative: selectedOption.alternative,
+                            chemical_replaced: normalizedChemical,
+                            corrected_chemical: normalizedChemical
+                        },
                         is_mock: response.data.is_mock
                     }
                 });

@@ -81,7 +81,7 @@ export default function Triage() {
 
     const handleNext = async () => {
         if (!chemical) {
-            setError('Please enter a chemical to replace.');
+            setError('Please enter a chemical name or describe the crop problem.');
             return;
         }
         if (!selectedFarmKey) {
@@ -93,7 +93,6 @@ export default function Triage() {
         setError('');
 
         try {
-            // Find the selected farm object
             const selectedFarm = farms.find(f => f._id.$oid === selectedFarmKey);
             const cropToUse = selectedFarm.crop || 'Unknown';
 
@@ -105,13 +104,14 @@ export default function Triage() {
             });
 
             if (response.data.status === 'success') {
-                navigate('/options', {
+                const bestOption = response.data.options[0];
+                // Skip /options entirely — go straight to the formulation lab
+                navigate('/lab', {
                     state: {
-                        options: response.data.options,
+                        selectedOption: bestOption,
                         context: {
-                            // Use corrected chemical name from dataset (fixes typos like "ureo" → "Urea")
-                            chemical: response.data.options[0]?.corrected_chemical || chemical,
-                            corrected_chemical: response.data.options[0]?.corrected_chemical || chemical,
+                            chemical: bestOption.corrected_chemical || chemical,
+                            corrected_chemical: bestOption.corrected_chemical || chemical,
                             crop: cropToUse,
                             plot: `${selectedFarm.name} - ${selectedFarm.plot}`,
                             acres: selectedFarm.acres || 1,
@@ -166,11 +166,11 @@ export default function Triage() {
                     </select>
                 )}
 
-                <label className="input-label" style={{ marginTop: '24px' }}><Search size={16} /> Chemical to Replace</label>
+                <label className="input-label" style={{ marginTop: '24px' }}><Search size={16} /> Chemical or Problem to Solve</label>
                 <input
                     type="text"
                     list="chemList"
-                    placeholder="e.g., Urea, DAP, Glyphosate..."
+                    placeholder="e.g., Urea, DAP, or 'nitrogen deficiency'..."
                     value={chemical}
                     onChange={(e) => setChemical(e.target.value)}
                     className="modern-input"
@@ -182,7 +182,7 @@ export default function Triage() {
                 </datalist>
 
                 <button className="primary-btn mt-6" onClick={handleNext} disabled={loadingSearch || farms.length === 0}>
-                    {loadingSearch ? <><Loader2 size={18} className="spin" style={{ display: 'inline', marginBottom: '-4px' }} /> Searching Database...</> : <>Find Alternatives &rarr;</>}
+                    {loadingSearch ? <><Loader2 size={18} className="spin" style={{ display: 'inline', marginBottom: '-4px' }} /> Finding Organic Alternative...</> : <>Find Organic Alternative &rarr;</>}
                 </button>
 
                 {/* MODAL OVERLAY */}

@@ -55,7 +55,7 @@ export default function LandingPage() {
                             Organic
                         </span>
                         <span style={{ display: 'block', fontSize: 'clamp(2.8rem, 5vw, 4.2rem)', fontWeight: '900', color: '#10b981', letterSpacing: '-1px' }}>
-                            Reccomendator
+                            Recommender
                         </span>
                     </h1>
 
@@ -84,25 +84,8 @@ export default function LandingPage() {
                     </div>
 
                     <button
+                        className="hero-cta"
                         onClick={() => navigate('/dashboard')}
-                        style={{
-                            background: '#0f172a',
-                            color: '#fff',
-                            border: 'none',
-                            padding: '16px 40px',
-                            borderRadius: '14px',
-                            fontSize: '1rem',
-                            fontWeight: '700',
-                            cursor: 'pointer',
-                            letterSpacing: '0.5px',
-                            transition: 'all 0.2s ease',
-                            boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(16,185,129,0.35)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#0f172a'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.2)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                     >
                         LET'S GO
                         <span style={{ fontSize: '1.1rem' }}>→</span>

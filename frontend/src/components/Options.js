@@ -31,7 +31,7 @@ export default function Options() {
 
     return (
         <div className="flow-page animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem' }}>
-            <header className="page-header" style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '40px', textAlign: 'center', flexDirection: 'column', alignItems: 'center' }}>
+            <header className="page-header" style={{ display: 'flex', gap: '16px', marginBottom: '40px', textAlign: 'center', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
                     <button className="back-btn" onClick={() => navigate(-1)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <ArrowLeft size={20} /> Back

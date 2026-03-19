@@ -41,8 +41,8 @@ export default function FarmDetails() {
 
                 // Sort by newest first
                 farmPlans.sort((a, b) => {
-                    const dateA = new Date(a.created_at.$date || a.created_at).getTime();
-                    const dateB = new Date(b.created_at.$date || b.created_at).getTime();
+                    const dateA = getPlanDate(a.created_at).getTime();
+                    const dateB = getPlanDate(b.created_at).getTime();
                     return dateB - dateA;
                 });
 
@@ -97,8 +97,8 @@ export default function FarmDetails() {
         );
     }
 
-    const activePlans = plans.filter(p => !p.status || p.status === 'PREPARING');
-    const historicalPlans = plans.filter(p => p.status === 'COMPLETED');
+    const activePlans = plans.filter(p => p.diff_category !== 'Historical');
+    const historicalPlans = plans.filter(p => p.diff_category === 'Historical');
 
     return (
         <div className="flow-page animate-fade-in" style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
@@ -140,7 +140,7 @@ export default function FarmDetails() {
                                     onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(16, 185, 129, 0.15)'; }}
                                 >
                                     <div style={{ position: 'absolute', top: '-12px', right: '24px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', padding: '4px 16px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                                        {plan.status || 'PREPARING'}
+                                        {plan.diff_category === 'Historical' ? 'COMPLETED' : (plan.status || 'PREPARING')}
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -154,7 +154,7 @@ export default function FarmDetails() {
                                         </div>
                                         <div style={{ textAlign: 'right', color: '#047857' }}>
                                             <div style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px', fontWeight: '600' }}>Deployed On</div>
-                                            <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{new Date(plan.created_at.$date || plan.created_at).toLocaleDateString()}</div>
+                                            <div style={{ fontWeight: '700', fontSize: '1.1rem' }}>{getPlanDate(plan.created_at).toLocaleDateString()}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -194,7 +194,7 @@ export default function FarmDetails() {
                                             </div>
                                         </div>
                                         <div style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: '500' }}>
-                                            {new Date(plan.created_at.$date || plan.created_at).toLocaleDateString()}
+                                            {getPlanDate(plan.created_at).toLocaleDateString()}
                                         </div>
                                     </div>
                                 </div>
@@ -209,4 +209,10 @@ export default function FarmDetails() {
             </div>
         </div>
     );
+}
+
+function getPlanDate(value) {
+    const rawValue = value?.$date || value;
+    const date = rawValue ? new Date(rawValue) : new Date(0);
+    return Number.isNaN(date.getTime()) ? new Date(0) : date;
 }
