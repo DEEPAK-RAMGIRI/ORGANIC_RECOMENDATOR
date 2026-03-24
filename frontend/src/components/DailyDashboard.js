@@ -154,6 +154,18 @@ export default function DailyDashboard() {
                         </p>
                     </div>
                 </header>
+                    {error && (
+                        <div style={{
+                            background: '#fef2f2',
+                            color: '#b91c1c',
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            marginBottom: '20px',
+                            fontWeight: '600'
+                        }}>
+                            {error}
+                        </div>
+                    )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                     
