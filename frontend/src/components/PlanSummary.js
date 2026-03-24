@@ -10,7 +10,7 @@ export default function PlanSummary() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { formulation_data, substitutions, custom_instructions, context, is_mock, is_saved, plan_id, completed_task_ids = [] } = location.state || { formulation_data: null, substitutions: {}, custom_instructions: '', context: {}, is_mock: false, is_saved: false, completed_task_ids: [] };
+  const { formulation_data, substitutions, custom_instructions, context, is_mock, is_saved, completed_task_ids = [] } = location.state || { formulation_data: null, substitutions: {}, custom_instructions: '', context: {}, is_mock: false, is_saved: false, completed_task_ids: [] };
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -48,20 +48,20 @@ export default function PlanSummary() {
     }
   };
 
-  // Post-save CTA block
-  const SaveSuccessBanner = () => (
-    <div style={{ background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '8px', textAlign: 'center' }}>
-      <div style={{ fontSize: '2rem' }}>✅</div>
-      <div>
-        <p style={{ margin: '0 0 4px', fontWeight: '700', color: '#0f766e', fontSize: '1.1rem' }}>Plan saved to your library!</p>
-        <p style={{ margin: 0, color: '#042f2e', fontSize: '0.9rem' }}>You can now track daily tasks in the Dashboard or view it anytime from My Plans.</p>
-      </div>
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <button onClick={() => navigate('/dashboard')} style={{ background: '#0f766e', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}>Go to Dashboard →</button>
-        <button onClick={() => navigate('/my-plans')} style={{ background: 'white', color: '#475569', border: '1px solid #e2e8f0', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontSize: '0.95rem' }}>My Plans</button>
-      </div>
-    </div>
-  );
+  // // Post-save CTA block
+  // const SaveSuccessBanner = () => (
+  //   <div style={{ background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '8px', textAlign: 'center' }}>
+  //     <div style={{ fontSize: '2rem' }}>✅</div>
+  //     <div>
+  //       <p style={{ margin: '0 0 4px', fontWeight: '700', color: '#0f766e', fontSize: '1.1rem' }}>Plan saved to your library!</p>
+  //       <p style={{ margin: 0, color: '#042f2e', fontSize: '0.9rem' }}>You can now track daily tasks in the Dashboard or view it anytime from My Plans.</p>
+  //     </div>
+  //     <div style={{ display: 'flex', gap: '12px' }}>
+  //       <button onClick={() => navigate('/dashboard')} style={{ background: '#0f766e', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}>Go to Dashboard →</button>
+  //       <button onClick={() => navigate('/my-plans')} style={{ background: 'white', color: '#475569', border: '1px solid #e2e8f0', padding: '12px 24px', borderRadius: '10px', fontWeight: '600', cursor: 'pointer', fontSize: '0.95rem' }}>My Plans</button>
+  //     </div>
+  //   </div>
+  // );
 
   return (
     <div className="flow-page animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
