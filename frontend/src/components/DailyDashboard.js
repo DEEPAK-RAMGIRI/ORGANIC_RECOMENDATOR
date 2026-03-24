@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, CheckCircle2, Circle, Loader2, Sparkles, AlertCircle, ArrowRight, Leaf, Clock, PartyPopper, Trophy, ExternalLink } from 'lucide-react';
+import { Calendar, CheckCircle2, Circle, Loader2, ArrowRight,  PartyPopper, Trophy, ExternalLink } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
