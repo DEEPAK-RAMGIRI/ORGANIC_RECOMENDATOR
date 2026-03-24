@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Plus, Trash2, Leaf, Loader2, Calculator, Settings2, ChevronDown, ChevronUp, TrendingDown, IndianRupee, Sprout, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2,  Loader2, Calculator, Settings2, Sprout } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 const fmt = (n) => `₹${new Intl.NumberFormat('en-IN').format(Math.round(n || 0))}`;

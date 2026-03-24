@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, PlusCircle, Sprout, Edit3, Trash2, CalendarClock, Beaker, MapPin } from 'lucide-react';
+import { Loader2, PlusCircle, Sprout, Edit3, Trash2,  Beaker, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { getCurrentUserId } from '../activeUser';
 import axios from 'axios';

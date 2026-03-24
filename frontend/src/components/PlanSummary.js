@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AlertTriangle, Clock, CheckCircle2, ShoppingCart, Printer, ArrowRight, Activity, Beaker, ShieldCheck, ChevronRight, Save, Info, ArrowLeft, Bookmark, FlaskConical, ListChecks, Loader2 } from 'lucide-react';
+import { AlertTriangle,  CheckCircle2, ArrowLeft, Bookmark, FlaskConical, ListChecks, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { getCurrentUserId } from '../activeUser';

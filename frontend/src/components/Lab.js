@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FlaskConical, Beaker, Clock, ShieldAlert, CheckCircle2, ArrowRight, Loader2, ChevronRight, Play, Check, AlertTriangle, Save, Microscope, History, Settings2, Zap, ArrowLeft } from 'lucide-react';
+import { FlaskConical, Beaker, Clock, Loader2,  Settings2, Zap, ArrowLeft } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import axios from 'axios';
 import '../styles/flow.css';

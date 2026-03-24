@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { ShieldAlert, Loader2, Beaker, Globe, Zap, Clock, ShieldCheck, Skull, Microscope, HeartPulse, Leaf, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, Loader2, ShieldCheck, Skull, Microscope, HeartPulse, Leaf, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 const S = {

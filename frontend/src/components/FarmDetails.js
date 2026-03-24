@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Tractor, MapPin, Sprout, Ruler, Activity, Clock, CheckCircle2, ChevronRight, Loader2, ArrowLeft, History, FlaskConical, Trash2, Calendar, AlertTriangle, Beaker, CalendarClock, AlertCircle } from 'lucide-react';
+import {  MapPin, Sprout, ArrowLeft, FlaskConical,  Beaker, CalendarClock, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { getCurrentUserId } from '../activeUser';
 import '../styles/flow.css';
