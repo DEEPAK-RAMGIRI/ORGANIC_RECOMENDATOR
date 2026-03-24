@@ -1,4 +1,4 @@
-# Organic Buddy Documentation
+# Organic Buddy
 
 Welcome to **Organic Buddy**, a comprehensive platform designed to help farmers transition from chemical-intensive agriculture to sustainable organic practices.
 
