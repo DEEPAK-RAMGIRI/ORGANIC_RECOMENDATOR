@@ -1,7 +1,7 @@
 // src/config.js
 
 // Create React App requires the REACT_APP_ prefix to expose variables
-export const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:10000';
+export const API_BASE_URL = 'http://localhost:10000' || process.env.REACT_APP_BACKEND_URL;
 
 export const logEnv = () => {
   console.log("%c[Organic Buddy] System Initialized", "color: #10b981; font-weight: bold;");
