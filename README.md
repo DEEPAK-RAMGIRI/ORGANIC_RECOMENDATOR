@@ -8,7 +8,11 @@ This project demonstrates the practical application of Artificial Intelligence i
 
 **Live Demo:** [ORGANIC BUDDY](https://organicbuddy.me/)
 
-![Screen Shot]()
+--- 
+
+![Screen Shot](https://github.com/DEEPAK-RAMGIRI/ORGANIC_RECOMENDATOR/blob/main/images/Screenshot%202026-03-25%20172216.png)
+
+--- 
 
 
 
