@@ -8,6 +8,9 @@ This project demonstrates the practical application of Artificial Intelligence i
 
 **Live Demo:** [ORGANIC BUDDY](https://organicbuddy.me/)
 
+![Screen Shot]()
+
+
 
 This application allows users to input a chemical input and give the oranic fertilizer output. The system uses an LLM and 
 
