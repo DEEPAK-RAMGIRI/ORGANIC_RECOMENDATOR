@@ -16,8 +16,6 @@ This project demonstrates the practical application of Artificial Intelligence i
 
 
 
-This application allows users to input a chemical input and give the oranic fertilizer output. The system uses an LLM and 
-
 Welcome to **Organic Buddy**, a comprehensive platform designed to help farmers transition from chemical-intensive agriculture to sustainable organic practices.
 
 ## Deployment Architecture
