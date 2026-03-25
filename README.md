@@ -1,4 +1,15 @@
-# Organic Buddy
+<h1 align="center"> ORGANIC BUDDY</h1>
+
+### FINAL YEAR PROJECT 
+
+Organic Buddy is an AI-powered full-stack web application designed to help farmers transition from synthetic chemical inputs to safe and sustainable organic alternatives. The platform provides personalized, farm-specific recommendations by analyzing crop type and current chemical usage, then suggesting effective organic solutions along with preparation guidance.
+The system integrates Natural Language Processing (TF-IDF) and a Large Language Model to generate actionable organic formulations, daily task guidance,Organic Buddy aims to promote environmentally friendly farming, reduce chemical dependency, and improve long-term soil and farmer health.
+This project demonstrates the practical application of Artificial Intelligence in agriculture through a production-ready platform built using Python (Flask) for the backend, React for the frontend, and MongoDB Atlas for data storage.
+
+**Live Demo:** [ORGANIC BUDDY](https://organicbuddy.me/)
+
+
+This application allows users to input a chemical input and give the oranic fertilizer output. The system uses an LLM and 
 
 Welcome to **Organic Buddy**, a comprehensive platform designed to help farmers transition from chemical-intensive agriculture to sustainable organic practices.
 
